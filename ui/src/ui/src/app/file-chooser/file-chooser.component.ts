@@ -23,11 +23,13 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'file-chooser',
   standalone: true,
-  imports: [MatButtonModule, CommonModule],
+  imports: [MatButtonModule, CommonModule, MatIconModule, MatTooltipModule],
   templateUrl: './file-chooser.component.html',
   styleUrl: './file-chooser.component.css',
 })

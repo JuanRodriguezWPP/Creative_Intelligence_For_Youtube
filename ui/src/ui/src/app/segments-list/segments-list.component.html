@@ -136,7 +136,7 @@ limitations under the License.
               <strong>Keywords: </strong>
               <mat-chip-set>
                 <mat-chip
-                  *ngFor="let keyword of segment.keywords.trim().split(', ')"
+                  *ngFor="let keyword of (segment.keywords || '').trim().split(', ')"
                   >{{ keyword }}</mat-chip
                 >
               </mat-chip-set>

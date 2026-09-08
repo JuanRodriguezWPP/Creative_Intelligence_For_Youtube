@@ -53,10 +53,10 @@ export interface GenerateVariantsResponse {
   description: string;
   score: number;
   abcd: {
-    attention: string;
-    branding: string;
-    connection: string;
-    direction: string;
+    attention: any;
+    branding: any;
+    connection: any;
+    direction: any;
   };
   abcd_dimensiones?: {
     attention_score: number;
@@ -68,6 +68,7 @@ export interface GenerateVariantsResponse {
   strengths?: string[];
   weaknesses?: string[];
   insight_principal?: string;
+  proyeccion_impacto?: string;
 }
 
 export class GenerationHelper {
@@ -128,8 +129,29 @@ export class GenerationHelper {
       );
       brandSection = lines.join('\n');
     }
+    let contextSection = '';
+    const cc = (settings as any).campaignContext;
+    if (cc) {
+      const ccLines = [
+        '**CONTEXTO ESTRATÉGICO Y DE CAMPAÑA (MANDATORY TO CONSIDER FOR YOUR EVALUATION):**',
+        'El Insight Principal, Fortalezas y Áreas de Mejora DEBEN evaluarse teniendo en cuenta el siguiente contexto del caso:'
+      ];
+      if (cc.objetivo_campania) ccLines.push(`- Objetivo de Campaña: ${cc.objetivo_campania}`);
+      if (cc.formato_asset) ccLines.push(`- Formato del Asset: ${cc.formato_asset}`);
+      if (cc.comentarios_asset) ccLines.push(`- Comentarios y requerimientos del Asset: ${cc.comentarios_asset}`);
+      if (cc.objetivo_negocio) ccLines.push(`- Objetivo de Negocio: ${cc.objetivo_negocio}`);
+      if (cc.audiencia) ccLines.push(`- Audiencia Target: ${cc.audiencia}`);
+      if (cc.descripcion) ccLines.push(`- Descripción de la Campaña: ${cc.descripcion}`);
+      if (cc.consideraciones) ccLines.push(`- Consideraciones Especiales: ${cc.consideraciones}`);
+      if (cc.lineamientos_marca) ccLines.push(`- Lineamientos de Marca: ${cc.lineamientos_marca}`);
+      if (cc.contexto_mercado) ccLines.push(`- Contexto de Mercado: ${cc.contexto_mercado}`);
+      
+      ccLines.push('Evalúa el video en función de si logra este objetivo y respeta este formato, no uses reglas genéricas si contradicen el formato (ej. no pidas historias largas en un formato de 6 segundos).');
+      contextSection = ccLines.join('\n');
+    }
 
     const generationPrompt = promptTemplate
+      .replace('{{{{campaignContext}}}}', contextSection)
       .replace('{{{{userPrompt}}}}', settings.prompt)
       .replace('{{{{generationEvalPromptPart}}}}', settings.evalPrompt)
       .replace('{{{{brandGuidelines}}}}', brandSection)
@@ -320,10 +342,10 @@ export class GenerationHelper {
                 description: String(description || '').trim(),
                 score: Number(String(score).replace(/[^\d.]/g, '').trim()),
                 abcd: {
-                  attention: String(abcd?.attention || '').trim(),
-                  branding: String(abcd?.branding || '').trim(),
-                  connection: String(abcd?.connection || '').trim(),
-                  direction: String(abcd?.direction || '').trim()
+                  attention: abcd?.attention || [],
+                  branding: abcd?.branding || [],
+                  connection: abcd?.connection || [],
+                  direction: abcd?.direction || []
                 },
                 abcd_dimensiones: result.abcd_dimensiones ? {
                   attention_score: Number(result.abcd_dimensiones.attention_score) || 0,
@@ -337,7 +359,8 @@ export class GenerationHelper {
                 ),
                 strengths: result.strengths || [],
                 weaknesses: result.weaknesses || [],
-                insight_principal: result.insight_principal || result.description || ''
+                insight_principal: result.insight_principal || result.description || '',
+                proyeccion_impacto: result.proyeccion_impacto || ''
               };
               variants.push(variant);
               AppLogger.info(`✓ Variant #${variants.length} added: "${variant.title}"`);

@@ -75,6 +75,7 @@ import {
   YoutubeIdeasResponse,
   OverlayType,
   PreviousRender,
+  PreviousRunsResponse,
   RenderedVariant,
   RenderQueueVariant,
   RenderSettings,
@@ -273,8 +274,10 @@ export class AppComponent {
   internalReference = '';
 
   // Section 2
-  campaignObjective = '';
-  businessObjective = '';
+  campaignObjective: string = '';
+  campaignFormat: string = '';
+  assetComments: string = '';
+  businessObjective: string = '';
   targetAudience = '';
   communicationTone = '';
   campaignDescription = '';
@@ -285,6 +288,8 @@ export class AppComponent {
   brandColor3 = '';
 
   // Section 3
+  enableGeo = false;
+  enableCategory = false;
   geoCsvSummary = '';
   geoCsvLineCount = 0;
   geoCsvBase64 = '';
@@ -537,19 +542,23 @@ export class AppComponent {
   prompt = 'Generate a shorter version of the video, keeping the core message the same.';
   defaultPrompt = 'Generate a shorter version of the video, keeping the core message the same.';
 
-  selectedFullVideoObjective = 'general';
+  selectedFullVideoObjective = 'awareness';
   analyzingFullVideo = false;
   fullVideoObjectives = [
-    { value: 'general', label: 'General', description: 'Evalúa el rendimiento global sin métricas específicas.' },
-    { value: 'awareness', label: 'Reconocimiento (Awareness)', description: 'Evalúa si el video capta la atención rápidamente y posiciona la marca.' },
-    { value: 'consideration', label: 'Consideración', description: 'Evalúa si el video explica el producto y fomenta la retención de información.' },
-    { value: 'action', label: 'Acción', description: 'Evalúa si el video persuade al espectador a realizar una compra o clic.' },
-    { value: 'engagement', label: 'Interacción (Engagement)', description: 'Evalúa si el video incentiva "likes", comentarios y que sea compartido.' }
+    { value: 'awareness', label: 'Reconocimiento (Awareness)', description: 'Maximizar el alcance y la recordación de la marca.' },
+    { value: 'consideration', label: 'Consideración', description: 'Generar interés y aumentar la intención de compra o evaluación del producto.' },
+    { value: 'action', label: 'Acción', description: 'Motivar una acción específica, como visitar un sitio web, registrarse o realizar una compra.' },
+    { value: 'engagement', label: 'Interacción (Engagement)', description: 'Incentivar la participación de la audiencia mediante interacciones con el contenido.' }
   ];
 
   getFullVideoObjectiveLabel(): string {
     const obj = this.fullVideoObjectives.find(o => o.value === this.selectedFullVideoObjective);
     return obj ? obj.label : '';
+  }
+
+  get campaignObjectiveDesc(): string {
+    const obj = this.fullVideoObjectives.find(o => o.label === this.campaignObjective);
+    return obj ? obj.description : '';
   }
 
   /** Returns the max possible score for the currently selected objective */
@@ -615,6 +624,12 @@ export class AppComponent {
   // Script loading flag
   mapScriptsLoaded = false;
   youtubeSelectedValue = '';
+  readonly audienceDimensions = [
+    'Affinity',
+    'In-Market',
+    'Live Events',
+    'Detailed Demographics'
+  ];
   youtubeSelectedCategories: string[] = [];
   youtubeGeoCoordinates = '';
   youtubeIdeasResponse: YoutubeIdeasResponse | null = null;
@@ -622,15 +637,7 @@ export class AppComponent {
   carouselIndex = 0;
   isGeneratingYoutubeIdeas = false;
 
-  readonly youtubeCategories = [
-    'Cine/Animación', 'Autos/Vehículos', 'Música', 'Mascotas/Animales',
-    'Deportes', 'Cortometrajes', 'Viajes/Eventos', 'Videojuegos', 'Videoblogs',
-    'Personas/Blogs', 'Comedia', 'Entretenimiento', 'Noticias/Política',
-    'Tutoriales/Estilo', 'Educación', 'Ciencia/Tecnología', 'Películas',
-    'Anime/Animación', 'Acción/Aventura', 'Clásicos', 'Documentales', 'Drama',
-    'Familia', 'Extranjero', 'Terror', 'Ciencia Ficción/Fantasía', 'Suspenso',
-    'Cortos', 'Programas', 'Tráilers'
-  ];
+
 
   duration = 0;
   step = 0;
@@ -722,16 +729,13 @@ export class AppComponent {
     this.getWebAppUrl();
     this.loadMapScripts();
 
-    // Allow locally served app to process query params.
-    // Production env (Apps Script) is handled via ngAfterViewInit()
-    if (!environment.production) {
-      inject(ActivatedRoute).queryParams.subscribe(params => {
-        const inputCombosFolder = params['inputCombosFolder'];
-        if (inputCombosFolder) {
-          this.handleInputCombosFolder(inputCombosFolder);
-        }
-      });
-    }
+    // Ya no usamos Apps Script: leemos query params desde la URL en cualquier entorno.
+    inject(ActivatedRoute).queryParams.subscribe(params => {
+      const inputCombosFolder = params['inputCombosFolder'];
+      if (inputCombosFolder) {
+        this.handleInputCombosFolder(inputCombosFolder);
+      }
+    });
   }
 
   async loadMapScripts() {
@@ -1044,8 +1048,8 @@ export class AppComponent {
 
   getAvSegments() {
     this.segmentsStatus = 'pending';
-    // Cap retries at 80 (480 seconds max wait = 8 minutes)
-    const maxSegmentRetries = Math.min(this.maxRetries, 80);
+    // Usamos el máximo de reintentos configurado dinámicamente según la duración del video
+    const maxSegmentRetries = this.maxRetries;
     this.apiCallsService
       .getFromGcs(
         `${this.folder}/${CONFIG.cloudStorage.files.data}`,
@@ -1085,8 +1089,10 @@ export class AppComponent {
           }
 
           this.segmentsStatus = 'check_circle';
-          this.loading = false;
-          this.stopAnalysisSimulation();
+          if (!this.isAnalysisInProgress) {
+            this.loading = false;
+            this.stopAnalysisSimulation();
+          }
           if (!this.nonLandscapeInputVideo) {
             this.generatePreviews();
           }
@@ -1213,8 +1219,8 @@ export class AppComponent {
 
   getVideoAnalysis() {
     this.analysisStatus = 'pending';
-    // Cap retries at 80 (480 seconds max wait = 8 minutes)
-    const maxAnalysisRetries = Math.min(this.maxRetries, 80);
+    // Usamos el máximo de reintentos configurado dinámicamente según la duración del video
+    const maxAnalysisRetries = this.maxRetries;
     this.apiCallsService
       .getFromGcs(
         `${this.folder}/${CONFIG.cloudStorage.files.analysis}`,
@@ -1241,13 +1247,21 @@ export class AppComponent {
             'Failed to load video analysis. The video may still be processing. ' +
             'Please try again in a few moments.'
           );
-          this.videoMagicPanel.close();
-          this.videoUploadPanel.open();
+          this.videoMagicPanel?.close();
+          this.videoUploadPanel?.open();
         },
       });
   }
 
   getSubtitlesTrack() {
+    // Si no hay análisis de audio, el VTT nunca va a existir — saltar directo al análisis.
+    if (!this.analyseAudio) {
+      console.warn('getSubtitlesTrack: analyseAudio=false, saltando VTT y llamando getVideoAnalysis() directamente.');
+      this.transcriptStatus = 'hourglass_top';
+      this.getVideoAnalysis();
+      return;
+    }
+
     this.transcriptStatus = 'pending';
     // Cap retries at 80 (480 seconds max wait = 8 minutes)
     const maxSubtitleRetries = Math.min(this.maxRetries, 80);
@@ -1261,15 +1275,15 @@ export class AppComponent {
         next: data => {
           const dataUrl = `data:text/vtt;base64,${StringUtil.encode(data)}`;
           this.transcript = data;
-          this.previewTrackElem.nativeElement.src = dataUrl;
-          this.subtitlesTrack = this.previewTrackElem.nativeElement.src;
+          if (this.previewTrackElem) this.previewTrackElem.nativeElement.src = dataUrl;
+          this.subtitlesTrack = this.previewTrackElem?.nativeElement.src ?? '';
           this.transcriptStatus = 'check_circle';
           this.getVideoAnalysis();
         },
         error: err => {
-          this.loading = false;
           this.transcriptStatus = 'hourglass_top';
           console.error('Failed to load subtitles:', err);
+          this.loading = false;
           alert(
             'Failed to load video subtitles. This may happen if:\n' +
             '- The video is still being processed\n' +
@@ -1278,9 +1292,9 @@ export class AppComponent {
             'Please try selecting the original uploaded video instead, ' +
             'or re-upload and process the video.'
           );
-          this.videoMagicPanel.close();
-          this.videoCombosPanel.close();
-          this.videoUploadPanel.open();
+          this.videoMagicPanel?.close();
+          this.videoCombosPanel?.close();
+          this.videoUploadPanel?.open();
         },
       });
   }
@@ -1340,17 +1354,66 @@ export class AppComponent {
     this.combos = undefined;
     this.getRenderedCombos(`${this.folder}/${folder}`);
   }
-
   showAnalysisModal = false;
 
   isAnalysisInProgress = false;
   isAnalysisComplete = false;
+  autoLoadMockData() {
+    this.apiCallsService.getRunsFromGcs().subscribe(result => {
+      if (result.runs && result.runs.length > 0) {
+        this.selectedHistoryRun = result.runs[0];
+        this.encodedUserId = result.encodedUserId;
+        this.loadPreviousRun(this.selectedHistoryRun);
+      }
+    });
+  }
+
   activeDashboardTab = 'resumen';
+  activeGeoMacroIndex = 0;
   currentProgressStep = 1;
   /** Estado de edición por campo en la pestaña Compass Insights */
   compassInsightsEditState: Record<string, boolean> = {};
   /** Sub-pestaña activa dentro de Compass Insights */
   compassInsightsTab = 'resumen';
+
+  abcdActiveSlide = 0;
+  abcdInterval: any;
+
+  startAbcdCarousel(resetToZero = false) {
+    this.stopAbcdCarousel();
+    if (resetToZero) {
+      this.abcdActiveSlide = 0;
+      this.cdRef.detectChanges();
+    }
+    this.abcdInterval = setInterval(() => {
+      this.abcdActiveSlide = (this.abcdActiveSlide + 1) % 5;
+      this.cdRef.detectChanges();
+    }, 4000); // changes every 4 seconds
+  }
+
+  stopAbcdCarousel() {
+    if (this.abcdInterval) {
+      clearInterval(this.abcdInterval);
+    }
+  }
+
+  setAbcdSlide(index: number) {
+    this.abcdActiveSlide = index;
+    this.cdRef.detectChanges();
+    // Reset timer when manually clicked
+    this.startAbcdCarousel();
+  }
+
+  ngOnInit() {
+    // Initial check for mobile size map
+  }
+
+  get cleanVideoName(): string {
+    const rawName = this.selectedFile?.name || this.selectedHistoryRun || 'Video_Subido.mp4';
+    // Remove anything after the file extension to clean up generated IDs
+    // Example: "Video_Subido.mp4 - asdqwaceacasdasd" -> "Video_Subido.mp4"
+    return rawName.replace(/(\.(mp4|mov|avi|mkv|webm)).*$/i, '$1');
+  }
 
   startAnalysisSimulation() {
     this.isAnalysisInProgress = true;
@@ -1359,6 +1422,7 @@ export class AppComponent {
     this.compassData = null;
     this.compassJson = '';
     this.compassStepError = '';
+    this.startAbcdCarousel(true);
   }
 
   /** Advance the visible step indicator */
@@ -1371,6 +1435,7 @@ export class AppComponent {
     // Legacy usage (error path): just hide the modal
     this.isAnalysisInProgress = false;
     this.isAnalysisComplete = false;
+    this.stopAbcdCarousel();
   }
 
   isCompassInsightsEditing(field: string): boolean {
@@ -1385,12 +1450,133 @@ export class AppComponent {
     this.compassInsightsTab = tab;
   }
 
+  deleteCompassInsightItem(tab: string, index: number, subType?: string): void {
+    if (!this.compassData) return;
+
+    if (tab === 'geo' && this.compassData.geo_intelligence) {
+      if (subType === 'insight_narrativo') {
+        this.compassData.geo_intelligence.insights_narrativos?.splice(index, 1);
+      } else if (subType === 'macro_estrategia') {
+        this.compassData.geo_intelligence.macro_estrategias?.splice(index, 1);
+      }
+    } else if (tab === 'channel' && this.compassData.channel_intelligence) {
+      if (subType === 'contexto') {
+        this.compassData.channel_intelligence.contextos?.splice(index, 1);
+      }
+    } else if (tab === 'op' && this.compassData.prioridades) {
+      if (subType === 'oportunidad') {
+        this.compassData.prioridades.oportunidades?.splice(index, 1);
+      }
+    }
+  }
+
+  restoreCompassInsightsTab(tab: string): void {
+    if (!this.compassData || !this.compassJson) return;
+    const originalData = this.safeParseJson(this.compassJson);
+    if (!originalData) return;
+
+    if (tab === 'resumen' || tab === 'creative') {
+      if (originalData.evaluacion_creativa) {
+        this.compassData.evaluacion_creativa = JSON.parse(JSON.stringify(originalData.evaluacion_creativa));
+      }
+    } else if (tab === 'geo') {
+      if (originalData.geo_intelligence) {
+        this.compassData.geo_intelligence = JSON.parse(JSON.stringify(originalData.geo_intelligence));
+      }
+    } else if (tab === 'channel') {
+      if (originalData.channel_intelligence) {
+        this.compassData.channel_intelligence = JSON.parse(JSON.stringify(originalData.channel_intelligence));
+      }
+    } else if (tab === 'op') {
+      if (originalData.prioridades) {
+        this.compassData.prioridades = JSON.parse(JSON.stringify(originalData.prioridades));
+      }
+    }
+  }
+
   getHighImpactOpportunitiesCount(): number {
     return this.compassData?.prioridades?.oportunidades?.filter(o => o.impacto === 'Alto').length || 0;
   }
 
   getMediumEffortOpportunitiesCount(): number {
     return this.compassData?.prioridades?.oportunidades?.filter(o => o.esfuerzo === 'Medio').length || 0;
+  }
+
+  getCategoryIcon(categoryName: string): string {
+    const name = categoryName.toLowerCase();
+
+    // Tech & Science
+    if (name.includes('tecnolog') || name.includes('tech') || name.includes('gadget') || name.includes('smartphone') || name.includes('ciencia')) return 'devices';
+    // Music
+    if (name.includes('música') || name.includes('music')) return 'music_note';
+    // Sports
+    if (name.includes('deporte') || name.includes('sport') || name.includes('fútbol')) return 'sports_soccer';
+    // Fashion & Beauty
+    if (name.includes('moda') || name.includes('fashion') || name.includes('ropa')) return 'checkroom';
+    if (name.includes('belleza') || name.includes('beauty') || name.includes('maquillaje') || name.includes('cuidado personal')) return 'face_retouching_natural';
+    // Gaming
+    if (name.includes('gaming') || name.includes('juego') || name.includes('videojuego')) return 'sports_esports';
+    // Education & Tutorials
+    if (name.includes('educación') || name.includes('education') || name.includes('aprender') || name.includes('tutorial')) return 'school';
+    // Vlogs, Blogs, People
+    if (name.includes('vlog') || name.includes('lifestyle') || name.includes('estilo de vida') || name.includes('blog') || name.includes('persona')) return 'photo_camera';
+    // Food & Drink
+    if (name.includes('comida') || name.includes('food') || name.includes('receta') || name.includes('aliment') || name.includes('snack')) return 'restaurant';
+    if (name.includes('bebida') || name.includes('drink') || name.includes('alcohol') || name.includes('licor')) return 'local_drink';
+    // Travel & Events
+    if (name.includes('viaje') || name.includes('travel') || name.includes('turismo') || name.includes('evento')) return 'flight';
+    // Auto
+    if (name.includes('auto') || name.includes('motor') || name.includes('vehículo') || name.includes('carro')) return 'directions_car';
+    // Finance & Business
+    if (name.includes('finanz') || name.includes('dinero') || name.includes('negocio') || name.includes('banc') || name.includes('econom')) return 'account_balance';
+    // News & Politics
+    if (name.includes('noticia') || name.includes('news') || name.includes('política')) return 'article';
+    // Entertainment & Comedy
+    if (name.includes('comedia') || name.includes('humor') || name.includes('entretenimiento') || name.includes('drama')) return 'theater_comedy';
+    // Health & Wellness
+    if (name.includes('salud') || name.includes('fitness') || name.includes('wellness') || name.includes('bienestar') || name.includes('médic')) return 'favorite';
+    // Home & Family
+    if (name.includes('hogar') || name.includes('home') || name.includes('casa') || name.includes('limpieza')) return 'home';
+    if (name.includes('familia')) return 'family_restroom';
+    // Pets
+    if (name.includes('mascota') || name.includes('animal') || name.includes('pet') || name.includes('perro') || name.includes('gato')) return 'pets';
+    // Retail & Shopping
+    if (name.includes('retail') || name.includes('compras') || name.includes('shopping') || name.includes('tienda') || name.includes('e-commerce') || name.includes('ecommerce')) return 'shopping_cart';
+    // Telco
+    if (name.includes('telecom') || name.includes('internet') || name.includes('telefon') || name.includes('móvil')) return 'cell_tower';
+    // Insurance / Security
+    if (name.includes('segur') || name.includes('protect')) return 'shield';
+    // Art & Design
+    if (name.includes('arte') || name.includes('diseño') || name.includes('creativ')) return 'palette';
+
+    // Movies & TV
+    if (name.includes('cine') || name.includes('película') || name.includes('pelicula') || name.includes('corto') || name.includes('tráiler') || name.includes('trailer') || name.includes('animación') || name.includes('anime')) return 'movie';
+    if (name.includes('programa') || name.includes('tv')) return 'tv';
+    if (name.includes('documental')) return 'video_camera_front';
+    if (name.includes('acción') || name.includes('accion') || name.includes('aventura')) return 'explore';
+    if (name.includes('terror') || name.includes('suspenso')) return 'nightlight_round';
+    if (name.includes('fantasía') || name.includes('ficción')) return 'rocket_launch';
+    if (name.includes('extranjero')) return 'language';
+
+    return 'category'; // Default icon
+  }
+
+  getImpactoBadgeClass(impacto: string): string {
+    if (impacto === 'Alto') return 'ca-badge--high';
+    if (impacto === 'Medio') return 'ca-badge--medium';
+    return 'ca-badge--low';
+  }
+
+  getEsfuerzoBadgeClass(esfuerzo: string): string {
+    if (esfuerzo === 'Alto') return 'ca-badge--low'; // Rojo/Amarillo
+    if (esfuerzo === 'Medio') return 'ca-badge--medium';
+    return 'ca-badge--high'; // Bajo esfuerzo = Verde (bueno)
+  }
+
+  getTipoBadgeClass(tipo: string): string {
+    if (tipo === 'Creative') return 'ca-badge--creative';
+    if (tipo === 'Geo') return 'ca-badge--progress'; // Azul
+    return 'ca-badge--locked'; // Morado o gris
   }
 
   /**
@@ -1671,10 +1857,33 @@ export class AppComponent {
       this.uploadVideo();
     }
   }
-
   uploadVideo() {
     this.loading = true;
     this.startAnalysisSimulation();
+
+    // Auto-advance to the second step (Análisis de Video) immediately so user doesn't wait
+    if (this.stepper && this.stepper.selectedIndex === 0) {
+      setTimeout(() => this.stepper.selectedIndex = 1, 50);
+    }
+
+    if (!this.encodedUserId) {
+      this.apiCallsService.getRunsFromGcs().subscribe({
+        next: (result: PreviousRunsResponse) => {
+          this.encodedUserId = result.encodedUserId;
+          this.continueUploadVideo();
+        },
+        error: () => {
+          this.loading = false;
+          alert('Failed to retrieve user info. Please try again.');
+        }
+      });
+      return;
+    }
+
+    this.continueUploadVideo();
+  }
+
+  private continueUploadVideo() {
     this.apiCallsService
       .uploadVideo(this.selectedFile!, this.analyseAudio, this.encodedUserId!)
       .subscribe({
@@ -1766,11 +1975,11 @@ export class AppComponent {
     this.renderQueueJsonArray = [];
     this.renderQueueName = '';
     this.previousRenders = undefined;
-    this.segmentModeToggle.value = 'preview';
-    this.previewToggleGroup.value = 'toggle';
+    if (this.segmentModeToggle) this.segmentModeToggle.value = 'preview';
+    if (this.previewToggleGroup) this.previewToggleGroup.value = 'toggle';
     this.displayObjectTracking = true;
     this.moveCropArea = false;
-    this.previewTrackElem.nativeElement.src = '';
+    if (this.previewTrackElem) this.previewTrackElem.nativeElement.src = '';
     this.subtitlesTrack = '';
     this.cropAreaRect = undefined;
     this.nonLandscapeInputVideo = false;
@@ -1783,11 +1992,11 @@ export class AppComponent {
     this.demandGenAssets = true;
     this.analyseAudio = false;
     this.segmentMarkers = {};
-    this.previewVideoElem.nativeElement.pause();
-    this.VideoComboComponent?.videoElem.nativeElement.pause();
-    this.videoMagicPanel.close();
-    this.videoCombosPanel.close();
-    this.videoUploadPanel.open();
+    if (this.previewVideoElem) this.previewVideoElem.nativeElement.pause();
+    this.VideoComboComponent?.videoElem?.nativeElement?.pause();
+    if (this.videoMagicPanel) this.videoMagicPanel.close();
+    if (this.videoCombosPanel) this.videoCombosPanel.close();
+    if (this.videoUploadPanel) this.videoUploadPanel.open();
   }
 
   resetVideoCanvas() {
@@ -1818,14 +2027,12 @@ export class AppComponent {
     this.resetState();
     this.folder = folder;
 
-    // Auto-advance to the second step (Análisis de Video)
-    if (this.stepper) {
-      setTimeout(() => this.stepper.next(), 50);
+    // Auto-advance to the second step (Análisis de Video) if not already there
+    if (this.stepper && this.stepper.selectedIndex === 0) {
+      setTimeout(() => this.stepper.selectedIndex = 1, 50);
     }
 
-    this.analyseAudio = !folder.includes(
-      `${CONFIG.videoFolderNameSeparator}${CONFIG.videoFolderNoAudioSuffix}${CONFIG.videoFolderNameSeparator}`
-    );
+    this.analyseAudio = false;
     this.videoPath = videoFilePath;
     this.getGcsFolderPath();
     this.previewVideoElem.nativeElement.onloadeddata = () => {
@@ -2050,6 +2257,9 @@ export class AppComponent {
       // Construimos el núcleo del CompassData con los datos del formulario
       const contextoCampania = {
         nombre_campania: this.campaignName,
+        objetivo_campania: this.campaignObjective,
+        formato_asset: this.campaignFormat,
+        comentarios_asset: this.assetComments,
         objetivo_negocio: this.businessObjective,
         audiencia: this.targetAudience,
         tono: this.communicationTone,
@@ -2068,6 +2278,7 @@ export class AppComponent {
           date: this.activationDate || new Date().toISOString().slice(0, 10),
           video_name: this.selectedFile?.name || this.selectedHistoryRun || 'Video',
           video_duration: this.selectedFileDurationStr || 'N/A',
+          video_url: this.videoPath || null,
           internal_ref: this.internalReference,
         },
         contexto_campania: contextoCampania,
@@ -2077,8 +2288,15 @@ export class AppComponent {
         prioridades: null,
       };
 
-      // Simulamos una pequeña pausa visual para el paso 2 (agregado +5 segundos)
-      await new Promise(resolve => setTimeout(resolve, 5800));
+      // Esperar a que el análisis base del video (generación de data.json) termine
+      while (this.segmentsStatus !== 'check_circle' && this.isAnalysisInProgress) {
+        if (!this.loading && this.segmentsStatus === 'hourglass_top') {
+          throw new Error('El análisis de video base falló o excedió el tiempo límite.');
+        }
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+      if (!this.isAnalysisInProgress) return; // Cancelado por el usuario o error
 
       // ── PASO 3 (REAL): Analizando señales creativas (ABCD) ─────────────────
       this.advanceStep(3);
@@ -2089,6 +2307,7 @@ export class AppComponent {
       const variantsResponse: any = await firstValueFrom(
         this.apiCallsService.generateVariants(this.folder, {
           prompt: '',
+          campaignContext: contextoCampania,
           evalPrompt: selectedEvalPrompt,
           duration: this.originalAvSegments
             ? this.originalAvSegments.reduce((total, seg) => total + (seg.end_s - seg.start_s), 0)
@@ -2100,7 +2319,6 @@ export class AppComponent {
             ? {
               brandParams: {
                 brandName: this.brandName,
-                advertiserName: this.advertiserName,
                 country: this.country,
                 brandColor: this.brandColor,
                 brandColor2: this.brandColor2,
@@ -2126,27 +2344,31 @@ export class AppComponent {
       if (this.variants && this.variants.length > 0) {
         this.fullVideoEvaluationResult = this.variants[0];
         const ev = this.fullVideoEvaluationResult;
-        this.compassData.evaluacion_creativa = {
-          score: ev.score || 0,
-          score_max: this.getMaxScore(),
-          score_label: this.getScoreLabel(ev.score || 0),
-          abcd_dimensiones: {
-            attention_score: ev.abcd_dimensiones?.attention_score || 0,
-            branding_score: ev.abcd_dimensiones?.branding_score || 0,
-            connection_score: ev.abcd_dimensiones?.connection_score || 0,
-            direction_score: ev.abcd_dimensiones?.direction_score || 0,
-          },
-          abcd: {
-            attention: ev.abcd?.attention || '',
-            branding: ev.abcd?.branding || '',
-            connection: ev.abcd?.connection || '',
-            direction: ev.abcd?.direction || '',
-          },
-          strengths: ev.strengths || [],
-          weaknesses: ev.weaknesses || [],
-          descripcion: ev.description || '',
-          insight_principal: ev.description || '',
-        };
+        if (this.compassData) {
+          this.compassData.evaluacion_creativa = {
+            score: ev.score || 0,
+            score_max: this.getMaxScore(),
+            score_label: this.getScoreLabel(ev.score || 0),
+            abcd_dimensiones: {
+              attention_score: ev.abcd_dimensiones?.attention_score || 0,
+              branding_score: ev.abcd_dimensiones?.branding_score || 0,
+              connection_score: ev.abcd_dimensiones?.connection_score || 0,
+              direction_score: ev.abcd_dimensiones?.direction_score || 0,
+            },
+            abcd: {
+              attention: ev.abcd?.attention || [],
+              branding: ev.abcd?.branding || [],
+              connection: ev.abcd?.connection || [],
+              direction: ev.abcd?.direction || [],
+            },
+            strengths: ev.strengths || [],
+            weaknesses: ev.weaknesses || [],
+            descripcion: ev.description || '',
+            insight_principal: ev.insight_principal || '',
+            proyeccion_impacto: ev.proyeccion_impacto || '',
+
+          };
+        }
       }
 
       this.loading = false;
@@ -2163,9 +2385,9 @@ export class AppComponent {
         this.advanceStep(4);
         try {
           const contextParcial = JSON.stringify({
-            meta: this.compassData.meta,
-            contexto_campania: this.compassData.contexto_campania,
-            evaluacion_creativa: this.compassData.evaluacion_creativa,
+            meta: this.compassData!.meta,
+            contexto_campania: this.compassData!.contexto_campania,
+            evaluacion_creativa: this.compassData!.evaluacion_creativa,
           });
           let geoData: any = null;
           let attempts = 0;
@@ -2182,8 +2404,8 @@ export class AppComponent {
               );
               console.log(`Compass: Geo Intelligence attempt ${attempts} raw response (first 800 chars):`, geoResponseRaw?.substring(0, 800));
               const parsed = this.safeParseJson(geoResponseRaw);
-              // Validación flexible: el objeto existe y tiene la clave macro_estrategias (puede ser array vacío)
-              if (parsed && typeof parsed === 'object' && 'macro_estrategias' in parsed) {
+              // Validación flexible: el objeto existe y tiene la clave macro_estrategias o micro_oportunidades
+              if (parsed && typeof parsed === 'object' && ('macro_estrategias' in parsed || 'micro_oportunidades' in parsed)) {
                 geoData = parsed;
                 console.log(`Compass: Geo Intelligence attempt ${attempts} SUCCESS. macro_estrategias count:`, parsed.macro_estrategias?.length);
               } else {
@@ -2204,14 +2426,18 @@ export class AppComponent {
           }
 
           console.log('Compass: Extracted Geo Intelligence', geoData);
-          this.compassData.geo_intelligence = {
-            macro_estrategias: geoData.macro_estrategias || [],
-            micro_oportunidades: geoData.micro_oportunidades || [],
-            insights_narrativos: geoData.insights_narrativos || [],
-          };
+          if (this.compassData) {
+            this.compassData.geo_intelligence = {
+              macro_estrategias: geoData.macro_estrategias || [],
+              micro_oportunidades: geoData.micro_oportunidades || [],
+              insights_narrativos: geoData.insights_narrativos || [],
+            };
+          }
         } catch (geoError) {
           console.error('Compass: Geo Intelligence step failed (non-fatal)', geoError);
-          this.compassData.geo_intelligence = null;
+          if (this.compassData) {
+            this.compassData.geo_intelligence = null;
+          }
         }
       }
 
@@ -2220,10 +2446,10 @@ export class AppComponent {
         this.advanceStep(5);
         try {
           const contextParcial = JSON.stringify({
-            meta: this.compassData.meta,
-            contexto_campania: this.compassData.contexto_campania,
-            evaluacion_creativa: this.compassData.evaluacion_creativa,
-            geo_intelligence: this.compassData.geo_intelligence,
+            meta: this.compassData!.meta,
+            contexto_campania: this.compassData!.contexto_campania,
+            evaluacion_creativa: this.compassData!.evaluacion_creativa,
+            geo_intelligence: this.compassData!.geo_intelligence,
           });
           let channelData: any = null;
           let channelAttempts = 0;
@@ -2231,10 +2457,11 @@ export class AppComponent {
           while (!channelData && channelAttempts < maxChannelAttempts) {
             channelAttempts++;
             try {
-              // Pasamos las seleccionadas + instrucción para que la IA evalúe 3 adicionales de alta afinidad
+              // Pasamos las dimensiones seleccionadas + instrucción para sugerir audiencias específicas
+              const dimensionsToEvaluate = this.curatedChannels.length > 0 ? this.curatedChannels : this.audienceDimensions;
               const categoriesPrompt = [
-                ...this.curatedChannels,
-                "--- INSTRUCCIÓN ADICIONAL ---: Además de las categorías anteriores, evalúa también obligatoriamente 3 categorías adicionales de la siguiente lista que tengan la MAYOR AFINIDAD posible con el video (que no estén ya seleccionadas): " + this.youtubeCategories.join(', ')
+                "Dimensiones a evaluar: " + dimensionsToEvaluate.join(', '),
+                "--- INSTRUCCIÓN ADICIONAL ---: Por cada dimensión listada arriba, sugiere 3 audiencias específicas de Google Ads altamente afines al video (ej. si es In-Market, sugiere 'Compradores de autos')."
               ];
               const channelResponseRaw = await firstValueFrom(
                 this.apiCallsService.generateChannelIntelligence(
@@ -2260,13 +2487,17 @@ export class AppComponent {
 
           console.log('Compass: Extracted Channel Intelligence', channelData);
           const contextos = Array.isArray(channelData) ? channelData : (channelData.contextos || []);
-          this.compassData.channel_intelligence = {
-            pregunta: '¿En qué contextos funciona mejor el contenido?',
-            contextos,
-          };
+          if (this.compassData) {
+            this.compassData.channel_intelligence = {
+              pregunta: '¿En qué contextos funciona mejor el contenido?',
+              contextos,
+            };
+          }
         } catch (channelError) {
           console.error('Compass: Channel Intelligence step failed (non-fatal)', channelError);
-          this.compassData.channel_intelligence = null;
+          if (this.compassData) {
+            this.compassData.channel_intelligence = null;
+          }
         }
       }
 
@@ -2301,13 +2532,17 @@ export class AppComponent {
 
         console.log('Compass: Extracted Prioritization Insights', priorData);
         const oportunidades = Array.isArray(priorData) ? priorData : (priorData.oportunidades || []);
-        this.compassData.prioridades = {
-          pregunta: '¿Qué debería hacer ahora?',
-          oportunidades,
-        };
+        if (this.compassData) {
+          this.compassData.prioridades = {
+            pregunta: '¿Qué debería hacer ahora?',
+            oportunidades,
+          };
+        }
       } catch (priorError) {
         console.error('Compass: Prioritization step failed (non-fatal)', priorError);
-        this.compassData.prioridades = null;
+        if (this.compassData) {
+          this.compassData.prioridades = null;
+        }
       }
 
       // ── PASO 7 (SIMULADO): Generando Compass Insights ──────────────────────
@@ -2349,31 +2584,61 @@ export class AppComponent {
     const maxScore = this.getMaxScore();
     const maxSubScore = maxScore / 4; // Since there are 4 dimensions (ABCD)
 
-    if (rawScore > maxSubScore && rawScore <= 100) {
-      return rawScore;
+    // If the LLM already returned a percentage (0-100 scale), use it directly.
+    // A sub-score > 10 almost certainly means the LLM output a 0-100 value.
+    if (rawScore > 10 && rawScore <= 100) {
+      return Math.round(rawScore);
     }
 
-    return Math.round((rawScore / maxSubScore) * 100);
+    // Otherwise it's a raw score in the rubric's own scale (e.g. 0-5).
+    // Clamp to maxSubScore before converting.
+    const clamped = Math.min(rawScore, maxSubScore);
+    return Math.round((clamped / maxSubScore) * 100);
   }
 
   getAbcdScoreBadge(): string {
     const percentage = this.getAbcdScorePercentage();
     if (percentage === 0) return 'Sin Evaluar';
     if (percentage >= 90) return 'Excelente';
-    if (percentage >= 75) return 'Bueno';
-    if (percentage >= 50) return 'Regular';
+    if (percentage >= 76) return 'Muy Bueno';
+    if (percentage >= 61) return 'Bueno';
     return 'Mejorable';
   }
 
   getAbcdScoreColorClass(): string {
     const percentage = this.getAbcdScorePercentage();
     if (percentage === 0) return 'gray';
-    if (percentage >= 75) return 'purple';
-    if (percentage >= 50) return 'blue';
+    if (percentage >= 90) return 'purple';
+    if (percentage >= 76) return 'green';
+    if (percentage >= 61) return 'blue';
     return 'orange';
   }
 
   selectedSceneIndex: number = 0;
+
+  selectScene(index: number) {
+    this.selectedSceneIndex = index;
+    const videoElement = document.getElementById('segment-video-elem') as HTMLVideoElement | null;
+    if (videoElement) {
+      const scene = this.getSceneAnalysis()[index];
+      if (scene && scene.segment) {
+        videoElement.currentTime = scene.segment.start_s;
+        videoElement.play().catch(e => console.log('Auto-play prevented:', e));
+      }
+    }
+  }
+
+  checkSegmentTime(videoElement: HTMLVideoElement, startS: number, endS: number) {
+    if (!videoElement.paused) {
+      if (videoElement.currentTime >= endS) {
+        videoElement.pause();
+        videoElement.currentTime = startS; // Reset to start of segment for next play
+      } else if (videoElement.currentTime < startS - 0.5) {
+        // Prevent user from rewinding before the segment starts
+        videoElement.currentTime = startS;
+      }
+    }
+  }
 
   formatSeconds(secs?: number): string {
     if (secs == null) return '00:00';
@@ -2420,6 +2685,27 @@ export class AppComponent {
   private _lastEv: any = null;
   private _lastSegments: any = null;
 
+  private parseAbcdCards(insightData: any, fallbackText: string): any[] {
+    if (Array.isArray(insightData)) {
+      return insightData;
+    } else if (typeof insightData === 'object' && insightData !== null) {
+      return [insightData];
+    } else if (typeof insightData === 'string' && insightData.trim().length > 0) {
+      return [{ hallazgo: 'Evaluación IA', valor: insightData, accion: 'Revisar detalles en el guion' }];
+    } else {
+      return [{ hallazgo: 'Evaluación Pendiente', valor: fallbackText, accion: 'No se encontraron acciones específicas.' }];
+    }
+  }
+
+  renderAbcdCards(insightData: any): string {
+    if (Array.isArray(insightData)) {
+      return insightData.map(card => `**Hallazgo:** ${card.hallazgo || 'N/A'}  \n**Acción:** ${card.accion || 'N/A'}`).join('\n\n');
+    } else if (typeof insightData === 'object' && insightData !== null) {
+      return `**Hallazgo:** ${insightData.hallazgo || 'N/A'}  \n**Acción:** ${insightData.accion || 'N/A'}`;
+    }
+    return String(insightData || 'N/A');
+  }
+
   getSceneAnalysis(): any[] {
     const ev = this.fullVideoEvaluationResult;
     const segments = this.avSegments || [];
@@ -2444,7 +2730,7 @@ export class AppComponent {
         name: 'Atención',
         tagClass: 'tag-a',
         title: 'Hook y Atención Visual',
-        description: ev.abcd?.attention || 'Análisis de atención visual y auditiva.',
+        insightsCards: this.parseAbcdCards(ev.abcd?.attention, 'Análisis de atención visual y auditiva.'),
         score: this.getSubScorePercentage(ev.abcd_dimensiones?.attention_score),
         segment: segments[0]
       },
@@ -2453,7 +2739,7 @@ export class AppComponent {
         name: 'Branding',
         tagClass: 'tag-b',
         title: 'Presencia de Marca',
-        description: ev.abcd?.branding || 'Evaluación de presencia de marca y logo.',
+        insightsCards: this.parseAbcdCards(ev.abcd?.branding, 'Evaluación de presencia de marca y logo.'),
         score: this.getSubScorePercentage(ev.abcd_dimensiones?.branding_score),
         segment: segments[Math.floor(numSegments * 0.33)] || segments[0]
       },
@@ -2462,7 +2748,7 @@ export class AppComponent {
         name: 'Conexión',
         tagClass: 'tag-c',
         title: 'Conexión Emocional',
-        description: ev.abcd?.connection || 'Ritmo, narrativa y conexión.',
+        insightsCards: this.parseAbcdCards(ev.abcd?.connection, 'Ritmo, narrativa y conexión.'),
         score: this.getSubScorePercentage(ev.abcd_dimensiones?.connection_score),
         segment: segments[Math.floor(numSegments * 0.66)] || segments[0]
       },
@@ -2471,7 +2757,7 @@ export class AppComponent {
         name: 'Deseo',
         tagClass: 'tag-d',
         title: 'Llamado a la Acción',
-        description: ev.abcd?.direction || 'Claridad del mensaje final.',
+        insightsCards: this.parseAbcdCards(ev.abcd?.direction, 'Claridad del mensaje final.'),
         score: this.getSubScorePercentage(ev.abcd_dimensiones?.direction_score),
         segment: segments[numSegments - 1]
       }
@@ -3096,6 +3382,16 @@ export class AppComponent {
       }));
     }
 
+    let geoKeysData: any[] = [];
+    if (this.geoCsvSummary) {
+      try {
+        const parsedGeo = JSON.parse(this.geoCsvSummary);
+        if (parsedGeo.muestra_de_datos_agrupados) {
+          geoKeysData = parsedGeo.muestra_de_datos_agrupados;
+        }
+      } catch (e) { }
+    }
+
     return {
       metadata: {
         session_id: sessionId,
@@ -3122,12 +3418,15 @@ export class AppComponent {
             ? `https://storage.googleapis.com/${CONFIG.cloudStorage.bucket}/${this.folder}/input.mp4`
             : null,
           duration_seconds: this.avSegments?.length
-            ? (this.avSegments[this.avSegments.length - 1].end_s ?? null) : null
+            ? (this.avSegments[this.avSegments.length - 1].end_s ?? null) : null,
+          video_dimensions: { width: this.videoWidth, height: this.videoHeight }
         },
-        segments: segments.length ? segments : null
+        segments: segments.length ? segments : null,
+        video_objects: this.videoObjects || null
       },
       variants: variantsMapped.length ? variantsMapped : null,
       youtube_ideation: youtubeIdeation,
+      geoKeysData: geoKeysData.length ? geoKeysData : null,
       export_summary: {
         total_segments_analyzed: segments.length,
         total_variants_generated: variantsMapped.length,
@@ -3159,7 +3458,12 @@ export class AppComponent {
     this.isLoadingInsightsReport = true;
     this.cdRef.detectChanges();
     try {
-      const payload = this.buildInsightsPayload();
+      const fullReport = this.buildInsightsPayload();
+      // Include compassData (edited fields) just like downloadCompassReport does
+      const payload = {
+        ...fullReport,
+        compassData: this.compassData
+      };
       const apiUrl = 'https://cdn.nexus-creative-solutions.com/LATAM/applications/vigen-insights/api.php';
       const payloadStr = JSON.stringify(payload);
 
@@ -3604,51 +3908,22 @@ export class AppComponent {
 
   getGeoPriorityLabel(prioridad: number): string {
     switch (prioridad) {
-      case 1: return 'Muy alta oportunidad';
-      case 2: return 'Alta oportunidad';
+      case 1: return 'Oportunidad muy alta';
+      case 2: return 'Oportunidad alta';
       case 3: return 'Oportunidad media';
-      case 4: return 'Baja oportunidad';
+      case 4: return 'Oportunidad baja';
       default: return 'Oportunidad media';
     }
   }
 
   getGeoBadgeClass(prioridad: number): string {
     switch (prioridad) {
-      case 1: return 'geo-badge-purple'; // which we reassigned to dark green
+      case 1: return 'geo-badge-dark-green';
       case 2: return 'geo-badge-green';
       case 3: return 'geo-badge-yellow';
       case 4: return 'geo-badge-orange';
       default: return 'geo-badge-yellow';
     }
-  }
-
-  getCategoryIcon(categoria: string): string {
-    const text = categoria?.toLowerCase() || '';
-    if (text.includes('tecnología') || text.includes('technology') || text.includes('tech')) return 'computer';
-    if (text.includes('música') || text.includes('music')) return 'music_note';
-    if (text.includes('juego') || text.includes('gaming')) return 'sports_esports';
-    if (text.includes('deporte') || text.includes('sports') || text.includes('futbol') || text.includes('fútbol')) return 'sports_soccer';
-    if (text.includes('educación') || text.includes('education')) return 'school';
-    if (text.includes('entretenimiento') || text.includes('entertainment') || text.includes('película') || text.includes('peliculas') || text.includes('cine') || text.includes('film') || text.includes('movie') || text.includes('cortos') || text.includes('tráilers') || text.includes('trailer')) return 'movie';
-    if (text.includes('noticia') || text.includes('news')) return 'article';
-    if (text.includes('moda') || text.includes('fashion') || text.includes('ropa')) return 'checkroom';
-    if (text.includes('viaje') || text.includes('travel') || text.includes('turismo')) return 'flight';
-    if (text.includes('comida') || text.includes('food') || text.includes('gastronomía')) return 'restaurant';
-    if (text.includes('comedia') || text.includes('comedy') || text.includes('humor')) return 'sentiment_very_satisfied';
-    if (text.includes('salud') || text.includes('health') || text.includes('fitness')) return 'fitness_center';
-    if (text.includes('belleza') || text.includes('beauty')) return 'face_retouching_natural';
-    if (text.includes('finanzas') || text.includes('finance') || text.includes('economía')) return 'attach_money';
-    if (text.includes('vehículo') || text.includes('auto') || text.includes('motor') || text.includes('automoción')) return 'directions_car';
-    if (text.includes('hogar') || text.includes('home')) return 'home';
-    if (text.includes('mascota') || text.includes('pets') || text.includes('animales')) return 'pets';
-    if (text.includes('arte') || text.includes('art') || text.includes('cultura')) return 'palette';
-    if (text.includes('ciencia') || text.includes('science')) return 'science';
-    if (text.includes('negocio') || text.includes('business') || text.includes('empresa') || text.includes('corporativo')) return 'business_center';
-    if (text.includes('estilo de vida') || text.includes('lifestyle')) return 'self_improvement';
-    if (text.includes('familia') || text.includes('family') || text.includes('niños') || text.includes('kids') || text.includes('parenting')) return 'family_restroom';
-    if (text.includes('política') || text.includes('politics') || text.includes('gobierno')) return 'gavel';
-    if (text.includes('sociedad') || text.includes('society')) return 'people';
-    return 'category';
   }
 
   getAffinityColorClass(afinidad: string): string {
@@ -3681,15 +3956,39 @@ export class AppComponent {
     return this.compassData.channel_intelligence.contextos.filter(c => c.afinidad.toLowerCase().includes('alta')).length;
   }
 
+  getTotalCreativeIdeasCount(): number {
+    const contextos = this.compassData?.channel_intelligence?.contextos;
+    if (!contextos) return 0;
+    return contextos.reduce((acc: number, c: any) => acc + (c.ideacion_adaptacion?.length || 0), 0);
+  }
+
+  getIdeasCreativasCount(): number {
+    const geoIdeas = (this.compassData?.geo_intelligence?.macro_estrategias?.length || 0) * 3;
+    const catIdeas = this.getTotalCreativeIdeasCount();
+    return geoIdeas + catIdeas;
+  }
+
   getSelectedContexts(): any[] {
     const contextos = this.compassData?.channel_intelligence?.contextos;
     if (!contextos || !Array.isArray(contextos)) return [];
     if (!this.curatedChannels || this.curatedChannels.length === 0) return contextos;
 
     // Filtrar solo las categorías que el usuario realmente seleccionó
-    const selected = contextos.filter(c => this.curatedChannels.includes(c.categoria));
+    const selected = contextos.filter(c => this.curatedChannels.includes(c.categoria ?? c.dimension ?? ''));
     // Si por alguna razón está vacío (ej. la IA devolvió nombres distintos), retornar todo
     return selected.length > 0 ? selected : contextos;
+  }
+
+  getAudienceContextsByDimension(dimension: string): any[] {
+    const contextos = this.compassData?.channel_intelligence?.contextos;
+    if (!contextos || !Array.isArray(contextos)) return [];
+    
+    return contextos.filter(c => {
+       const dim = (c.dimension || '').toLowerCase();
+       // Sometimes the AI returns 'Live Events' as 'Life Events', handle this gently
+       const targetDim = dimension.toLowerCase() === 'live events' ? 'life events' : dimension.toLowerCase();
+       return dim.includes(targetDim) || (targetDim === 'life events' && dim.includes('live events'));
+    });
   }
 
   getTopRecommendedCategories(): any[] {
@@ -3704,6 +4003,19 @@ export class AppComponent {
     });
 
     return sorted.slice(0, 3);
+  }
+
+  // ---------------------------------------- //
+  // HELPER PARA OPORTUNIDADES
+  // ---------------------------------------- //
+  formatPrioridad(prioridad: any): string {
+    if (!prioridad) return 'Oportunidad';
+    const strPrioridad = String(prioridad);
+    const lower = strPrioridad.toLowerCase();
+    if (lower.includes('alta') || lower.includes('alto')) return 'Oportunidad alta';
+    if (lower.includes('media') || lower.includes('medio')) return 'Oportunidad media';
+    if (lower.includes('baja') || lower.includes('bajo')) return 'Oportunidad baja';
+    return `Oportunidad ${strPrioridad.toLowerCase()}`;
   }
 
   // ---------------------------------------- //

@@ -330,7 +330,7 @@ textarea.mat-mdc-input-element {
   border-color: rgba(32, 33, 36, 0.2) !important;
 }
 
-/* Hide top stepper menu */
+/* Stepper header hidden as requested */
 .main-stepper .mat-horizontal-stepper-header-container,
 .main-stepper .mat-horizontal-stepper-header,
 .main-stepper .mat-step-header {

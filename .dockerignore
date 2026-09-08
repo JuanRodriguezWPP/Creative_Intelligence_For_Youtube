@@ -1,0 +1,41 @@
+# Dependencias instaladas localmente (se re-instalan en el build)
+node_modules
+**/node_modules
+
+# Archivos de build locales (se re-generan en el build)
+dist
+**/dist
+api-server/dist
+
+# Credenciales — NUNCA subir a la nube
+api-server/gcp-key.json
+api-server/.env
+*.env
+
+# Archivos de sistema macOS
+.DS_Store
+**/.DS_Store
+
+# Archivos de git
+.git
+.gitignore
+
+# Archivos de desarrollo / editores
+.vscode
+.editorconfig
+*.log
+
+# Archivos grandes e innecesarios para el build
+api-server/google-cloud-cli-darwin-arm.tar.gz
+
+# Carpetas del proyecto original / otros servicios (NO subir al servidor Node)
+ui/dist
+ui/node_modules
+service/
+terraform/
+img/
+*.ts
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json

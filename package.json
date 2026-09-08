@@ -40,5 +40,17 @@
     "@types/cross-spawn": "^6.0.6",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.12.7"
-  }
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JuanRodriguezWPP/Compass-Analysis---WPP.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JuanRodriguezWPP/Compass-Analysis---WPP/issues"
+  },
+  "homepage": "https://github.com/JuanRodriguezWPP/Compass-Analysis---WPP#readme"
 }

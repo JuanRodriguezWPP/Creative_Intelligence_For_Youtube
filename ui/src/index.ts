@@ -442,9 +442,7 @@ function doGet(e: GoogleAppsScript.Events.DoGet) {
   const output = HtmlService.createTemplateFromFile('ui')
     .evaluate()
     .setTitle('Creative Services WPP')
-    .setFaviconUrl(
-      'https://services.google.com/fh/files/misc/vigenair_logo.png'
-    );
+    .setFaviconUrl('https://cdn.nexus-creative-solutions.com/LATAM/applications/Compass-Analysis/assets-vigneair/favicon.ico');
   if (e && e.parameter && e.parameter['inputCombosFolder']) {
     output.append(
       `<input id="input-combos-folder" type="hidden" value="${e.parameter['inputCombosFolder']}">`

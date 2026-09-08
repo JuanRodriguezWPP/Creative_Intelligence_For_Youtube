@@ -40,7 +40,7 @@ export interface BrandParams {
   /** Commercial name of the brand (e.g., "Coca-Cola") */
   brandName: string;
   /** Legal or commercial name of the advertiser (e.g., "The Coca-Cola Company") */
-  advertiserName: string;
+  advertiserName?: string;
   /** Target country or market (e.g., "Mexico", "Global") */
   country?: string;
   /** Primary brand color in hex format (e.g., "#FF0000") */
@@ -64,6 +64,7 @@ export interface GenerationSettings {
   fullVideoAnalysis?: boolean;
   /** Optional brand parameters injected into generation prompts. */
   brandParams?: BrandParams;
+  campaignContext?: any;
 }
 
 /** Represents an audio/video segment. */
@@ -78,6 +79,12 @@ export interface AvSegment {
   segment_uri?: string;
 }
 
+export interface AbcdInsightCard {
+  hallazgo: string;
+  valor: string;
+  accion: string;
+}
+
 /** Response structure for variant generation. */
 export interface GenerateVariantsResponse {
   combo_id: number;
@@ -87,10 +94,10 @@ export interface GenerateVariantsResponse {
   description: string;
   score: number;
   abcd: {
-    attention: string;
-    branding: string;
-    connection: string;
-    direction: string;
+    attention: AbcdInsightCard[];
+    branding: AbcdInsightCard[];
+    connection: AbcdInsightCard[];
+    direction: AbcdInsightCard[];
   };
   abcd_dimensiones?: {
     attention_score: number;
@@ -107,6 +114,8 @@ export interface GenerateVariantsResponse {
   strengths?: string[];
   weaknesses?: string[];
   insight_principal?: string;
+  proyeccion_impacto?: string;
+  formatos_wpp_sugeridos?: string[];
 }
 
 /** Response structure for YouTube Content Ideas. */
@@ -169,13 +178,15 @@ export interface CompassGeoOportunidad {
 }
 
 export interface CompassGeoInsight {
-  icono: string;
+  tipo: 'Do' | 'Keep' | 'Explore';
   titulo: string;
   descripcion: string;
 }
 
 export interface CompassCategoriaContexto {
-  categoria: string;
+  categoria?: string; // Legacy support
+  dimension?: string;
+  audiencia_especifica?: string;
   afinidad: string;
   insights: string[];
   evidencias: string[];
@@ -192,6 +203,12 @@ export interface CompassOportunidad {
   recomendacion: string;
   tipo: 'Creative' | 'Geo' | 'Categoría';
   tiempo_referencia?: string;
+  kpi_impactado?: string;
+  metrica_medicion?: string;
+  do?: string;
+  keep?: string;
+  explore?: string;
+  formato_sugerido?: string;
 }
 
 export interface CompassAbcdDimensiones {
@@ -210,10 +227,14 @@ export interface CompassData {
     date: string;
     video_name: string;
     video_duration: string;
+    video_url?: string | null;
     internal_ref: string;
   };
   contexto_campania: {
     nombre_campania: string;
+    objetivo_campania: string;
+    formato_asset: string;
+    comentarios_asset: string;
     objetivo_negocio: string;
     audiencia: string;
     tono: string;
@@ -228,16 +249,18 @@ export interface CompassData {
     score_label: string;
     abcd_dimensiones?: CompassAbcdDimensiones;
     abcd: {
-      attention: string;
-      branding: string;
-      connection: string;
-      direction: string;
-      [key: string]: string;
+      attention: AbcdInsightCard[];
+      branding: AbcdInsightCard[];
+      connection: AbcdInsightCard[];
+      direction: AbcdInsightCard[];
+      [key: string]: any;
     };
     strengths: string[];
     weaknesses: string[];
+    formatos_wpp_sugeridos?: string[];
     descripcion: string;
     insight_principal?: string;
+    proyeccion_impacto?: string;
   } | null;
   geo_intelligence: {
     macro_estrategias: CompassGeoOportunidad[];
@@ -294,10 +317,10 @@ export interface RenderQueueVariant {
   description: string;
   score: number;
   abcd: {
-    attention: string;
-    branding: string;
-    connection: string;
-    direction: string;
+    attention: AbcdInsightCard[];
+    branding: AbcdInsightCard[];
+    connection: AbcdInsightCard[];
+    direction: AbcdInsightCard[];
   };
   render_settings: RenderSettings;
   duration: string;

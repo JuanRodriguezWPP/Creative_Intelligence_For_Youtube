@@ -47,7 +47,7 @@ limitations under the License.
       }}</mat-icon>
   </div>
   }
-  <video class="mat-elevation-z8" [style.margin-right]="showApprovalStatus ? 'auto' : ''" #videoElem controls>
+  <video class="mat-elevation-z8" [style.margin-right]="showApprovalStatus ? 'auto' : ''" #videoElem controls [muted]="true">
     <source src="" />
   </video>
 </div>

@@ -433,14 +433,35 @@ export class ApiCallsService implements ApiCalls {
     return new Observable<string>(subscriber => {
       setTimeout(() => {
         subscriber.next(JSON.stringify({
-          macro_estrategias: [{
-            zona: "Centro Norte",
-            audiencia: 150000,
-            coordenada_central: "19.4326,-99.1332",
-            estrategia: "Aumentar pauta en formatos cortos.",
-            prioridad: 1,
-            insight_narrativo: "El 60% de la audiencia aquí prefiere contenido dinámico."
-          }],
+
+          macro_estrategias: [
+            {
+              zona: "Centro Norte",
+              audiencia: 150000,
+              coordenada_central: "19.4326,-99.1332",
+              estrategia: "Aumentar pauta en formatos cortos.",
+              prioridad: 1,
+              insight_narrativo: "El 60% de la audiencia aquí prefiere contenido dinámico.",
+              insights_creativos: {
+                do: "Sustituye la escena de tráfico pesado del min 0:15 por tomas del metro o transporte público local, incrementa la retención inicial un 12%.",
+                keep: "Mantén la corrección de color cálida en el call to action (min 0:45); transmite cercanía.",
+                explore: "Probar un corte vertical rápido (6s) destacando únicamente el atributo de durabilidad de batería."
+              }
+            },
+            {
+              zona: "Sur Sureste",
+              audiencia: 98000,
+              coordenada_central: "20.9673,-89.6236",
+              estrategia: "Conectar con elementos culturales locales en out of home y video corto.",
+              prioridad: 2,
+              insight_narrativo: "Alta respuesta a paletas de colores vibrantes y mensajes familiares.",
+              insights_creativos: {
+                do: "Integrar música con percusión sutil en el B-roll para sincronizar con el ritmo de vida local.",
+                keep: "El actor principal genera alta empatía, mantener sus escenas clave sin recortes.",
+                explore: "Crear una variante donde el producto se muestre en un contexto de playa o clima tropical."
+              }
+            }
+          ],
           micro_oportunidades: [{
             zona: "Monterrey Sur",
             audiencia: 45000,
@@ -448,19 +469,7 @@ export class ApiCallsService implements ApiCalls {
             estrategia: "Pauta hiper-local en centros comerciales.",
             prioridad: 2,
             insight_narrativo: "Alta densidad de tráfico en fines de semana."
-          }],
-          insights_narrativos: [
-            {
-              icono: "trending_up",
-              titulo: "Mayor oportunidad en Centro Norte",
-              descripcion: "Esta agrupación presenta la mayor afinidad con el mensaje y el producto."
-            },
-            {
-              icono: "location_on",
-              titulo: "Diferencias por lenguaje visual",
-              descripcion: "La zona sur reacciona mejor a tomas de estilo de vida."
-            }
-          ]
+          }]
         }));
         subscriber.complete();
       }, 1000);
@@ -474,9 +483,10 @@ export class ApiCallsService implements ApiCalls {
     return new Observable<string>(subscriber => {
       setTimeout(() => {
         subscriber.next(JSON.stringify([{
-          categoria: categories[0] || "Mock Category",
+          dimension: "In-Market",
+          audiencia_especifica: "Amantes de los viajes",
           afinidad: "Alta",
-          insights: ["Insight 1"],
+          insights: ["Insight 1 relacionado a viajes"],
           evidencias: ["Evidencia 1"],
           recomendaciones: ["Recomendación 1"],
           ideacion_adaptacion: ["Adaptar el inicio con un gancho tecnológico", "Usar jerga de la categoría"]

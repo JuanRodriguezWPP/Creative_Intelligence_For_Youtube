@@ -336,11 +336,33 @@ export const PROMPTS = {
     {{{{videoScript}}}}
 
     {{{{brandGuidelines}}}}
+    
+    {{{{campaignContext}}}}
 
     **Phase 1: Expert Critique and Evaluation**
     {{{{generationEvalPromptPart}}}}
 
     **CRITICAL: ALL evaluation text (Reasoning and ABCD sections) MUST be written in SPANISH, regardless of the video language ({{{{videoLanguage}}}}). Only the Title should be in ({{{{videoLanguage}}}}). All analysis, reasoning, and ABCD evaluation MUST be in SPANISH.**
+
+    **REGLAS DE REDACCIÓN Y TONO (MÓDULO BETTER INSIGHTS):**
+    1. **Principio Rector:** El rol no es proveedor de reportes descriptivos, es socio estratégico. Toda lectura debe responder a "¿Y esto qué significa para el objetivo de la campaña?".
+    2. **Apertura de Negocio:** Inicia el resumen ejecutivo (campo 'description') declarando explícitamente el objetivo del cliente (ej. awareness, consideración, conversión). Toda evaluación debe leerse contra ese objetivo, no de forma genérica.
+    3. **Consecuencia de Negocio (El 'Qué significa'):** Cada hallazgo, fortaleza y debilidad/oportunidad debe terminar su idea explicando qué mueve en el objetivo del negocio y en qué KPI de la solución se refleja. Evita el lenguaje suelto (ej. 'buen desempeño'); cada afirmación debe tener su dato y su consecuencia de negocio.
+    4. **Tono y Lenguaje:** Consultivo, ejecutivo, en positivo. Reemplaza jerga técnica por lenguaje de negocio claro.
+    5. **Regla de Oro (Accionabilidad):** Enmarca las debilidades en positivo como "oportunidades accionables", no como errores pasivos. Toda recomendación debe proponer una acción concreta de edición o mejora.
+    6. **Estructura de Fortalezas:** Redacta cada viñeta de forma extremadamente directa y concisa (máximo 4-6 palabras). Ej: 'Hook inicial efectivo', 'Mensaje claro y relevante'.
+    7. **Estructura de Debilidades/Oportunidades (H->V->N):** Redacta cada viñeta como una sola frase contundente que conecte: Hallazgo (qué pasa en el video) -> Valor (por qué importa para el objetivo) -> Next Step (acción sugerida).
+    8. **CERO ALUCINACIONES (CRÍTICO):** Basa todo tu análisis ÚNICA Y EXCLUSIVAMENTE en el Video Script provisto. NO inventes elementos visuales, logos (ej. marcas ajenas), personajes o diálogos que no existan explícitamente en el guion. Si no encuentras debilidades reales, no las inventes; enfócate en optimizaciones sutiles.
+    9. **EVALUACIÓN ABCD OBLIGATORIA:** Bajo NINGUNA circunstancia puedes dejar la dimensión "direction" vacía. Debes generar EXACTAMENTE 1 tarjeta informativa estructurada para CADA dimensión (Attention, Branding, Connection, Direction) detallando el Hallazgo, Valor y Acción.
+
+    **CATÁLOGO DE FORMATOS WPP (Referencia complementaria):**
+    DESPUÉS de dar tu recomendación creativa en las tarjetas ABCD o en fortalezas/debilidades, si aplica, sugiere qué formato WPP podría ayudar a implementar esa acción. Los formatos son un complemento, NO deben reemplazar ni condicionar la recomendación creativa.
+    Formatos disponibles:
+    - **Branded Bar:** Elementos gráficos superpuestos (barra superior/inferior) que captan atención sin interrumpir la reproducción. Ideal para destacar mensajes, promociones o gráficas complementarias.
+    - **Video Card:** Frame de 3-5 segundos al inicio, intermedio o cierre del video para mostrar información complementaria (mapas, galerías, textos). Puede incorporar CTA o QR.
+    - **Canvas:** El video se reduce y alrededor aparece un lienzo de marca con gráficos, mensajes, ofertas y/o QR, ampliando el espacio de comunicación sin ocultar el contenido principal.
+    - **Amplification:** A partir de recursos existentes se crean nuevos formatos para alcanzar nuevas audiencias en cualquier dispositivo, maximizando inversión.
+    - **QR Code:** Integración de código QR dentro del video para dirigir al usuario a una página de producto, landing page o formulario.
 
     **Output Format (Strictly Enforce):**
     Output a strict JSON array containing EXACTLY ONE object representing the original full video. Do not wrap the JSON in Markdown formatting blocks (e.g. \`\`\`json). The object must have the following exact structure:
@@ -348,7 +370,8 @@ export const PROMPTS = {
       {
         "title": "Video Original Completo",
         "scenes": "[Comma-separated list of ALL scene numbers from the original script]",
-        "description": "[Short but detailed explanation IN SPANISH of the video's overall coherence, engagement, and effectiveness]",
+        "description": "[Insight Principal Ejecutivo: ABRE declarando el objetivo del cliente (awareness/consideración/conversión). Luego evalúa el asset contra ese objetivo: cada fortaleza y oportunidad debe explicar qué KPI de la solución mueve y qué consecuencia de negocio tiene. NO te limites a resumir la trama del video.]",
+        "proyeccion_impacto": "[CRÍTICO: Declaración de oportunidad que proyecta el crecimiento esperado. Debe estar HIPER-ALINEADA al objetivo específico de la campaña y a las métricas afectadas por las recomendaciones de este asset. NO DEBE ser una frase genérica (ej. 'mejorará el anuncio'). Ej: 'Incorporar llamadas a la acción explícitas y fijar el producto incrementará sustancialmente la asociación de marca, proyectando un crecimiento directo en el volumen de conversiones y disminuyendo el CPA de esta creatividad.']",
         "score": "[Total points earned - sum all points from all ABCD criteria. Do NOT convert to 1-5 scale, output the raw total.]",
         "duration": "[Sum of the durations of all scenes in seconds]",
         "abcd_dimensiones": {
@@ -358,18 +381,18 @@ export const PROMPTS = {
           "direction_score": 60
         },
         "abcd": {
-          "attention": "[Detailed evaluation IN SPANISH for the A - Attention criterion. Describe strengths and weaknesses based on the rubric.]",
-          "branding": "[Detailed evaluation IN SPANISH for the B - Branding criterion.]",
-          "connection": "[Detailed evaluation IN SPANISH for the C - Connection criterion.]",
-          "direction": "[Detailed evaluation IN SPANISH for the D - Direction criterion.]"
+          "attention": { "hallazgo": "[Qué pasa visual]", "valor": "[Consecuencia en el objetivo del cliente y KPI afectado (ej. retención, VTR)]", "accion": "[Qué editar o mantener para mejorar ese KPI]" },
+          "branding": { "hallazgo": "[Cómo/cuándo aparece la marca]", "valor": "[Consecuencia en reconocimiento de marca y su impacto en el funnel del objetivo]", "accion": "[Optimización concreta de logo/producto]" },
+          "connection": { "hallazgo": "[Tono, ritmo o emoción del video]", "valor": "[Impacto en afinidad de audiencia y qué mueve en el objetivo del cliente]", "accion": "[Sugerencia narrativa con consecuencia medible]" },
+          "direction": { "hallazgo": "[Presencia y claridad del CTA]", "valor": "[Impacto en conversión y valor que se pierde sin CTA claro]", "accion": "[Mejora del llamado a la acción con métrica de validación]" }
         },
         "strengths": [
-          "[Short phrase describing a key strength, e.g., 'Hook inicial efectivo (0-3s)']",
-          "[Another short phrase, e.g., 'Alta presencia de branding']"
+          "[Frase extremadamente directa y concisa (máximo 4-6 palabras). Ej: 'Hook inicial efectivo']",
+          "[Otra fortaleza corta y directa. Ej: 'Mensaje claro y relevante']"
         ],
         "weaknesses": [
-          "[Short phrase describing a critical weakness, e.g., 'CTA poco visible']",
-          "[Another short phrase, e.g., 'Falta refuerzo de producto en la segunda mitad']"
+          "[Frase H->V->N en positivo. Ej: 'Acelerar la aparición de marca a los primeros 2s mitigará la caída de atención temprana → esto mejorará directamente el Ad Recall, alineándose con el objetivo de Awareness de la campaña.']",
+          "[Otra oportunidad de mejora accionable explícitamente alineada al objetivo de negocio de la campaña y al KPI esperado.]"
         ]
       }
     ]`,
@@ -415,6 +438,7 @@ export const PROMPTS = {
         *   Each combination *must* fall within the specified duration range: {{expectedDurationRange}}.
         *   Every scene number used in a generated combination must exist in the original script {{videoScript}}. Generating a combination that includes a non-existent scene number (e.g., suggesting "5" when the script only has scenes 1-3) is a critical failure and will render the entire output useless.
         *   ALL output text except the Title must be in SPANISH.
+        *   **EVALUACIÓN ABCD OBLIGATORIA:** Bajo NINGUNA circunstancia puedes dejar la dimensión "direction" (o cualquier otra) vacía. Debes generar EXACTAMENTE 1 tarjeta informativa estructurada para CADA dimensión (attention, branding, connection, direction) detallando el Hallazgo, Valor y Acción.
 
     **Output Format (Strictly Enforce):**
 
@@ -433,10 +457,10 @@ export const PROMPTS = {
           "direction_score": 60
         },
         "abcd": {
-          "attention": "[Detailed evaluation IN SPANISH for the A - Attention criterion. Describe strengths and weaknesses based on the rubric.]",
-          "branding": "[Detailed evaluation IN SPANISH for the B - Branding criterion.]",
-          "connection": "[Detailed evaluation IN SPANISH for the C - Connection criterion.]",
-          "direction": "[Detailed evaluation IN SPANISH for the D - Direction criterion.]"
+          "attention": { "hallazgo": "[Qué pasa visual/auditivamente en general]", "valor": "[Por qué capta o pierde atención general]", "accion": "[Qué editar o mantener]" },
+          "branding": { "hallazgo": "[Cómo/cuándo aparece la marca]", "valor": "[Impacto en recordación]", "accion": "[Optimización de logo/producto]" },
+          "connection": { "hallazgo": "[Tono, ritmo o emoción del video]", "valor": "[Impacto en la audiencia]", "accion": "[Sugerencia narrativa]" },
+          "direction": { "hallazgo": "[Presencia y claridad del CTA]", "valor": "[Impacto en conversión/deseo]", "accion": "[Mejora del llamado a la acción]" }
         },
         "strengths": [
           "[Short phrase describing a key strength, e.g., 'Hook inicial efectivo (0-3s)']",
@@ -644,26 +668,37 @@ export const COMPASS_INTELLIGENCE_PROMPTS = {
   geoIntelligence: `Eres un experto en inteligencia geográfica y adaptación de contenido creativo para campañas de video digital.
 
 Con base en:
-- Contexto de campaña: {{compassContextJson}}
+- Contexto completo de campaña: {{compassContextJson}}
 - Top 30 zonas de demanda (macro): {{macroJson}}  
 - Top 20 micro-clusters de alta concentración: {{microJson}}
 
-Genera un análisis GeoKey que clasifique las mejores 5 zonas macro y las 5 mejores micro-oportunidades.
+CONTEXTO OBLIGATORIO DE CAMPAÑA — usa estos campos del contexto en cada estrategia:
+- contexto_campania.objetivo_campania: El objetivo principal del video (reconocimiento, consideración, acción). Orienta cada estrategia hacia ese resultado.
+- contexto_campania.formato_asset: El formato del creative (Repurposing, Branded Bar, Video Card, Canvas, Amplification). Las recomendaciones deben ser posibles dentro de este formato.
+- contexto_campania.comentarios_asset: Observaciones del ejecutivo sobre el video. Si indica que no puede editarse, propón complementaciones. Si permite adaptación, úsalas como base.
+- contexto_campania.audiencia: Perfil del público. Adapta el mensaje y tono a ese segmento en cada zona.
+- contexto_campania.tono: Estilo comunicativo de la marca. Mantenlo en todas las adaptaciones regionales.
 
-IMPORTANTE: Tus estrategias e insights DEBEN enfocarse 100% en la CREATIVIDAD del video (adaptación de mensaje, elementos visuales, cultura local, narrativa, tono, pacing).
-CRÍTICO: NO des consejos genéricos como "usar jergas locales" o "mostrar lugares de la ciudad". Tienes que proporcionar EJEMPLOS ALTAMENTE ESPECÍFICOS Y TANGIBLES dependiendo de la zona exacta. Por ejemplo, si la zona es "Jalisco", recomienda modismos reales ("¿qué onda?", "ocupo"), lugares emblemáticos exactos, tradiciones, o estilos de música locales. Muestra conocimiento profundo del contexto cultural, lingüístico, gastronómico y visual de ESA región específica en tus estrategias.
-Piensa como un Director Creativo experto en la hiper-regionalización de México y LATAM. NUNCA hables de pauta, compra de medios o presupuestos.
+Genera un análisis GeoKey que clasifique las 5 mejores macro-estrategias (zonas regionales) y las 5 mejores micro-oportunidades (ciudades/municipios).
+
+Contexto Sociodemográfico y de Comportamiento: PROHIBIDO SER GENÉRICO. Enfócate en insights demográficos, económicos o de comportamiento reales de la zona (ej. "Crecimiento de consumo digital", "Alta concentración universitaria", "Polo industrial emergente") PERO SIEMPRE adaptado para que la creatividad respete de manera estricta el tono de comunicación de la marca. Conéctalo al objetivo.
+Longitud Estricta: La estrategia NO DEBE superar las 25 palabras. Sé telegráfico pero híper-específico.
+
+IMPORTANTE: Tus estrategias e insights DEBEN enfocarse 100% en la CREATIVIDAD del video (adaptación de mensaje, elementos visuales, narrativa, tono, pacing), aprovechando las características sociodemográficas y de comportamiento de cada región, y alineadas al objetivo_campania y formato_asset disponible.
+CRÍTICO: Este reporte es EXCLUSIVAMENTE para anuncios de YouTube. NO recomiendes ni menciones formatos de otras redes sociales (como Instagram Stories, Facebook Reels, TikTok, etc.).
+CRÍTICO: NO des consejos genéricos. Cada estrategia debe cruzar la zona geográfica con el objetivo de campaña y el formato del asset. Muestra conocimiento profundo del contexto poblacional, tendencias de consumo y perfil socioeconómico de ESA región específica (NADA de jergas ni comida).
+Piensa como un Director Creativo experto en la hiper-regionalización estratégica de México y LATAM. NUNCA hables de pauta, compra de medios o presupuestos.
 
 RETORNA ÚNICAMENTE este JSON exacto (sin markdown, sin explicaciones):
 {
   "macro_estrategias": [
     {
-      "zona": "Nombre descriptivo de la zona",
+      "zona": "Nombre EXACTO y CORTO de la zona (ej. 'Centro Norte', 'Occidente'). PROHIBIDO agregar descripciones, frases o subtítulos después del nombre.",
       "audiencia": 150000,
       "coordenada_central": "19.4326, -99.1332",
-      "estrategia": "Texto accionable de la estrategia para esta zona",
-      "prioridad": 1,
-      "insight_narrativo": "Frase narrativa de máx 2 líneas explicando por qué esta zona es relevante"
+      "titulo_estrategia": "MÁXIMO 5 PALABRAS. Título corto y atractivo que resuma el hallazgo demográfico o de comportamiento. Ej: 'Crecimiento en consumo digital'",
+      "estrategia": "MÁXIMO 25 PALABRAS. PROHIBIDO ser genérico. Detalla un insight creativo basado en el hallazgo sociodemográfico. CRÍTICO: La adaptación debe respetar el tono de la marca. Ultra-breve pero híper-específico.",
+      "prioridad": 1
     }
   ],
   "micro_oportunidades": [
@@ -671,72 +706,143 @@ RETORNA ÚNICAMENTE este JSON exacto (sin markdown, sin explicaciones):
       "zona": "Nombre de ciudad/municipio",
       "audiencia": 45000,
       "coordenada_central": "19.4326, -99.1332",
-      "estrategia": "Texto accionable",
-      "prioridad": 1,
-      "insight_narrativo": "Frase narrativa breve"
-    }
-  ],
-  "insights_narrativos": [
-    {
-      "icono": "trending_up",
-      "titulo": "Mayor oportunidad en [nombre zona]",
-      "descripcion": "Texto de 2-3 líneas explicando la oportunidad específica"
-    },
-    {
-      "icono": "location_on",
-      "titulo": "Diferencias por lenguaje visual",
-      "descripcion": "Texto sobre diferencias regionales"
-    },
-    {
-      "icono": "people",
-      "titulo": "Oportunidad de adaptación regional",
-      "descripcion": "Texto sobre impacto de adaptación"
-    },
-    {
-      "icono": "play_circle_outline",
-      "titulo": "Contextos de consumo variados",
-      "descripcion": "Texto sobre dispositivos y plataformas por zona"
+      "estrategia": "MÁXIMO 25 PALABRAS. Variante hiper-específica. Describe el insight de comportamiento local a aprovechar respetando el tono de la marca, y qué KPI mejora. Cero explicaciones.",
+      "prioridad": 1
     }
   ]
 }
 
 REGLAS:
+- CRÍTICO LENGUAJE: Redacta toda la información utilizando un lenguaje claro, cotidiano y fácil de entender para cualquier persona que hable español. Evita estrictamente la jerga técnica, siglas complejas de marketing o términos rebuscados.
 - Responde ÚNICAMENTE con el JSON (sin markdown ni texto adicional).
 - CRÍTICO: Asegúrate de escapar correctamente todas las comillas dobles internas (usando \\") dentro de los valores de texto.
 - CRÍTICO: NO uses comas finales (trailing commas) en los arrays u objetos. El JSON debe ser 100% válido para JSON.parse().`,
-  channelIntelligence: `Eres un experto en estrategia de contenido creativo y categorías de YouTube.
+  channelIntelligence: `Eres un experto en estrategia de contenido creativo y segmentación de audiencias (Google Ads Audience Targeting).
 
 Contexto de campaña: {{compassContextJson}}
-Categorías seleccionadas: {{categoriesText}}
+Dimensiones seleccionadas: {{categoriesText}}
 
-Para cada categoría, analiza la afinidad del video con esa categoría y genera ideas de adaptación de contenido.
+CONTEXTO OBLIGATORIO — ancla tu análisis en estos campos del contexto antes de generar cualquier recomendación:
+- contexto_campania.objetivo_campania: Define el tipo de resultados esperados. Orienta todas las ideas hacia ese objetivo.
+- contexto_campania.audiencia: Perfil del público objetivo. Adapta el tono y la relevancia del contenido a este segmento.
+- contexto_campania.tono: Estilo comunicativo de la marca. Todo contenido generado debe respetar este tono.
 
-IMPORTANTE: Tus recomendaciones e ideación DEBEN enfocarse 100% en la CREATIVIDAD del video (qué mostrar, mensajes, ritmo, formatos de anuncio en video, llamados a la acción, cultura) y NUNCA en la pauta, compra de medios, budgets, pujas o variables exclusivas de Google Ads. Eres un consultor creativo, no un Media Planner.
+**REGLA CRÍTICA — JERARQUÍA DEL SUJETO PRINCIPAL:**
+Antes de asociar audiencias, identifica el SUJETO PRINCIPAL del video (ej. vehículo, producto alimenticio, servicio financiero). Los elementos secundarios del escenario (paisajes, decoración, locaciones) son CONTEXTO, no el tema del video. Las audiencias deben coincidir con el sujeto principal, no con los elementos de fondo.
+Ejemplo: Un video de un vehículo SUV rodando por zonas verdes → el sujeto es el VEHÍCULO (audiencia: Automotive/SUV enthusiasts), NO los paisajes (NO recomendar: amantes de la naturaleza). Los paisajes refuerzan el mensaje de aventura del vehículo, pero la audiencia se define por el producto anunciado.
+Siempre pregúntate: "¿Qué se está vendiendo en este video?" La respuesta define la audiencia principal.
+
+Para cada dimensión de audiencia listada, deduce e identifica audiencias específicas que tengan alto match con el SUJETO PRINCIPAL y la intención comercial del video.
+
+TAXONOMÍA GOOGLE ADS (REFERENCIA):
+AFFINITY
+- Technology
+- Entertainment
+- Sports
+- Travel
+- Food & Dining
+- Beauty & Wellness
+- Home & Garden
+- Pets
+- Finance
+- Business
+- Shopping
+
+IN-MARKET
+- Travel
+- Automotive
+- Finance
+- Real Estate
+- Education
+- Technology
+- Health
+- Beauty
+- Retail
+- Food & Dining
+- Software
+- Home & Garden
+
+LIFE EVENTS
+- Marriage
+- Moving
+- Career
+- Graduation
+- Home Purchase
+- Retirement
+
+DETAILED DEMOGRAPHICS
+- Education
+- Family Status
+- Parenthood
+- Housing
+- Career Stage.
+
+Selecciona la audiencia específica más cercana dentro de la taxonomía Google Ads. No inventes nombres personalizados. Utiliza nomenclatura equivalente a Google Ads.
+
+IMPORTANTE: Tus recomendaciones e ideación DEBEN enfocarse 100% en la CREATIVIDAD del video (qué mostrar, mensajes, ritmo, formatos de anuncio, llamados a la acción, cultura) alineada a esa audiencia específica, y NUNCA en la pauta, compra de medios, budgets, pujas o variables exclusivas de configuración de Google Ads. Eres un consultor creativo, no un Media Planner.
 
 RETORNA ÚNICAMENTE este JSON exacto:
 [
   {
-    "categoria": "Tecnología",
+    "dimension": "El nombre EXACTO de la dimensión (Affinity, In-Market, Life Events, o Detailed Demographics)",
+    "audiencia_especifica": "Amantes de los viajes de lujo",
     "afinidad": "Muy alta",
-    "insights": ["Insight 1 sobre la categoría", "Insight 2"],
-    "evidencias": ["Evidencia 1 del video"],
-    "recomendaciones": ["Recomendación 1 accionable"],
+    "insights": ["Insight 1 sobre cómo el video conecta con esta audiencia", "Insight 2"],
+    "evidencias": ["Evidencia 1 visual o narrativa del video"],
+    "recomendaciones": ["Recomendación 1 accionable a nivel creativo"],
     "ideacion_adaptacion": [
-      "Idea de adaptación 1 para esta categoría específica",
-      "Idea de adaptación 2 con contexto de la zona o audiencia"
+      "Idea de adaptación creativa 1 para esta audiencia",
+      "Idea de adaptación creativa 2"
     ]
   }
 ]
 
 REGLAS:
+- CRÍTICO LENGUAJE: Redacta toda la información utilizando un lenguaje claro, cotidiano y fácil de entender para cualquier persona que hable español. Evita estrictamente la jerga técnica, siglas complejas de marketing o términos rebuscados.
 - Responde ÚNICAMENTE con el JSON (sin markdown ni texto adicional).
 - CRÍTICO: Asegúrate de escapar correctamente todas las comillas dobles internas (usando \\") dentro de los valores de texto.
 - CRÍTICO: NO uses comas finales (trailing commas) en los arrays u objetos. El JSON debe ser 100% válido para JSON.parse().`,
-  prioritization: `Eres un consultor creativo experto en optimización de video para campañas digitales.
+  prioritization: `Eres un consultor creativo experto en optimización de video específicamente para YouTube Ads. Tu rol es el de socio estratégico, no proveedor de reportes.
 
 Contexto completo: {{compassContextJson}}
 
-Con base en todos los datos analizados (evaluación creativa ABCD, geo intelligence y channel intelligence), genera entre 4 y 6 oportunidades de mejora priorizadas.
+CONTEXTO OBLIGATORIO — cada oportunidad debe estar anclada en estos campos:
+- contexto_campania.objetivo_campania: El objetivo principal del video. Las oportunidades deben responder a este objetivo específico.
+- contexto_campania.formato_asset: El tipo de servicio creativo disponible (Repurposing, Branded Bar, Video Card, Canvas, Amplification). NUNCA recomiendes acciones que no sean posibles dentro de este formato.
+- contexto_campania.comentarios_asset: Observaciones del equipo sobre el asset. Si indica que el video no es editable, las recomendaciones deben ser de complementación, no de edición.
+- contexto_campania.objetivo_negocio: Para conectar cada hallazgo con el impacto real en el negocio.
+- contexto_campania.audiencia: Para validar que cada recomendación es relevante para el público correcto.
+
+FILTRO OBLIGATORIO Y REGLA DE SÍNTESIS (CRÍTICO):
+1. **ANCLAJE ESTRICTO A LA REALIDAD DEL VIDEO (CERO ALUCINACIONES):** Está ESTRICTAMENTE PROHIBIDO inventar elementos que no existen en la data proporcionada. No asumas ni menciones logos de marcas específicas (ej. Nike, Coca-Cola), actores, locaciones, textos o escenas que no estén EXPRESAMENTE documentados en el análisis del video. Cíñete 100% a la información verídica entregada. Si inventas detalles visuales o narrativos inexistentes, fallarás gravemente.
+2. **NO INVENTES PROBLEMAS NUEVOS:** El contexto proporcionado incluye una Evaluación Creativa (ABCD) y puede incluir opcionalmente análisis de Audiencia o Geográfico. Tu tarea es EXCLUSIVAMENTE extraer, consolidar y priorizar los hallazgos críticos detectados en los módulos presentes. No alucines debilidades que no fueron mencionadas previamente.
+2. **ALINEACIÓN CON EL OBJETIVO:** Ordena y prioriza estas oportunidades estrictamente basándote en cuáles tendrían el mayor impacto positivo según el 'contexto_campania.objetivo_campania' seleccionado por el cliente. Si el objetivo es 'Conversión', prioriza resolver problemas de CTA o fricción; si es 'Awareness', prioriza problemas de Branding y Atención temprana.
+3. ¿Esta recomendación es posible dentro del formato_asset disponible?
+4. CRÍTICO: ¿La acción recomendada está pensada EXCLUSIVAMENTE para YouTube Ads? (Ej. Bumper ads, in-stream saltables, Shorts, superposiciones de CTA, pantallas finales).
+
+**REGLA DE DISTRIBUCIÓN OBLIGATORIA (Hasta 5 oportunidades en total):**
+- Del análisis ABCD (Evaluación Creativa): Extrae HASTA 4 acciones o debilidades de mayor impacto detectadas en la calificación ABCD. CRÍTICO: Si el video tiene una calificación perfecta o no presenta áreas de mejora reales, NO inventes recomendaciones de relleno para llegar a 4. Solo aconseja sobre debilidades genuinas.
+- Del análisis de Inteligencia Geográfica (Geo)(SI ESTA PRESENTE): Extrae SIEMPRE 1 sola acción consolidada. Esta única oportunidad Geo DEBE SER una recopilación estratégica de TODAS las zonas analizadas (Ej: "Las zonas 1, 2 y 3 tienen una alta concentración de personas que, con un CTA más explícito, ofrecen mayor oportunidad de aumentar el objetivo"). Debe girar 100% en torno a ADAPTACIONES CREATIVAS del video (el asset). ESTÁ ESTRICTAMENTE PROHIBIDO sugerir acciones de compra de medios (pauta), segmentación en plataformas de anuncios o cambios de presupuesto; la recomendación debe ser puramente creativa.
+De este modo, generarás un MÁXIMO de 5 oportunidades (Hasta 4 reales de ABCD y 1 consolidada de Geo). No inventes problemas si el video está perfectamente optimizado.
+
+Decisiones de Negocio: Cada oportunidad debe funcionar como una decisión de negocio priorizada, no como sugerencias de diseño sueltas.
+Valor Perdido: En la "evidencia", explica claramente el valor que se deja sobre la mesa (qué se está perdiendo el cliente por no hacer este ajuste). Ej: 'El branding aparece después del segundo 8, lo que debilita el reconocimiento en la ventana crítica y frena el paso de awareness a consideración; el cliente pierde recordación de marca en el 60% de las impresiones que no superan los 5s.'
+Medición Integrada: En "kpi_impactado" define qué KPI de negocio se moverá (ej. VTR, CTR, Reconocimiento). En "metrica_medicion" indica cómo se validará el éxito de la acción (ej. interacción con la end-card, aumento de tráfico).
+Do/Keep/Explore: Para cada oportunidad, define:
+  - "do": Acción concreta a implementar ya sobre el asset.
+  - "keep": Elemento del asset que funciona bien y debe mantenerse intacto.
+  - "explore": Oportunidad de adaptación futura o test creativo a explorar.
+
+**CATÁLOGO DE FORMATOS WPP (Sugerencia complementaria, NO reemplaza la recomendación creativa):**
+DESPUÉS de redactar tu recomendación creativa y acción Do, si alguna podría implementarse usando un formato WPP específico, indicálo en el campo "formato_sugerido". Los formatos son un valor añadido, NO deben condicionar ni reemplazar la lógica creativa.
+Formatos disponibles:
+- **Branded Bar:** Elementos gráficos superpuestos (barra superior/inferior). Ideal para mensajes, promociones.
+- **Video Card:** Frame de 3-5 segundos al inicio, intermedio o cierre para info complementaria. Puede incorporar CTA o QR.
+- **Canvas:** El video se reduce y alrededor aparece un lienzo de marca con gráficos, mensajes, ofertas y/o QR.
+- **Amplification:** A partir de recursos existentes se crean nuevos formatos para nuevas audiencias.
+- **QR Code:** Integración de código QR dentro del video para dirigir al usuario a landing page o formulario.
+
+Enmarca siempre en positivo: oportunidad, no error. Cada recomendación cierra con una acción medible y específica para pauta en YouTube, no una observación pasiva.
 
 RETORNA ÚNICAMENTE este JSON exacto:
 {
@@ -744,8 +850,14 @@ RETORNA ÚNICAMENTE este JSON exacto:
   "oportunidades": [
     {
       "titulo": "Título accionable de la oportunidad",
-      "evidencia": "Descripción clara del problema o hallazgo",
-      "recomendacion": "Acción concreta y específica a tomar",
+      "evidencia": "Hallazgo creativo + consecuencia de negocio + valor perdido",
+      "recomendacion": "MÁXIMO 15 PALABRAS. Acción directa, clara y al grano orientada a mejores prácticas de YouTube Ads (sin mencionar formatos WPP aquí).",
+      "kpi_impactado": "KPI de negocio impactado, OBLIGATORIAMENTE alineado al 'contexto_campania.objetivo_campania' seleccionado por el cliente en el formulario principal. Si el objetivo es Awareness, usa KPIs como Ad Recall, VTR, Impresiones visibles. Si es Consideración, usa CTR, Engagement Rate, Brand Lift. Si es Conversión/Acción, usa CPA, ROAS, Tasa de conversión.",
+      "metrica_medicion": "Cómo se validará el éxito de esta oportunidad, vinculada al mismo objetivo de campaña",
+      "do": "Acción concreta a implementar ya sobre el asset",
+      "keep": "Elemento del asset que funciona bien y debe mantenerse intacto",
+      "explore": "Oportunidad de adaptación futura o test creativo a explorar",
+      "formato_sugerido": "OPCIONAL: Formato WPP que podría ayudar a implementar esta acción (Branded Bar, Video Card, Canvas, Amplification, QR Code). Si no aplica, dejar vacío.",
       "impacto": "Alto",
       "esfuerzo": "Medio",
       "prioridad": 1,
@@ -756,13 +868,14 @@ RETORNA ÚNICAMENTE este JSON exacto:
 }
 
 Reglas:
-- impacto: solo "Alto", "Medio" o "Bajo"
-- esfuerzo: solo "Alto", "Medio" o "Bajo"
-- prioridad: número del 1 al 6, sin repetir
-- tipo: "Creative" si viene del análisis ABCD, "Geo" si viene del análisis geográfico, "Categoría" si viene del channel intelligence
+- impacto: Debe ser EXCLUSIVAMENTE un string ("Alto", "Medio" o "Bajo"). NO un objeto.
+- esfuerzo: Debe ser EXCLUSIVAMENTE un string ("Alto", "Medio" o "Bajo"). NO un objeto.
+- prioridad: Número entero del 1 al 5, sin repetir.
+- tipo: Debe ser EXCLUSIVAMENTE un string ("Creative" si viene de ABCD, "Geo" si viene de Geo, o "Categoría" si viene de Audiencias). NO un objeto.
 - tiempo_referencia: solo si aplica al video (segmento específico), sino omitir
 
 REGLAS ADICIONALES:
+- CRÍTICO LENGUAJE: Redacta toda la información (evidencias, recomendaciones, acciones) utilizando un lenguaje claro, cotidiano y fácil de entender para cualquier persona que hable español. Evita estrictamente la jerga técnica, siglas complejas de marketing o términos rebuscados.
 - Responde ÚNICAMENTE con el JSON (sin markdown ni texto adicional).
 - CRÍTICO: Asegúrate de escapar correctamente todas las comillas dobles internas (usando \\") dentro de los valores de texto.
 - CRÍTICO: NO uses comas finales (trailing commas) en los arrays u objetos. El JSON debe ser 100% válido para JSON.parse().

@@ -23,6 +23,11 @@ limitations under the License.
   >
     Seleccionar video
   </button>
+  <mat-icon
+    matTooltip="Carga el video principal de la campaña. Creative Intelligence analizará sus elementos visuales, narrativos y de comunicación para generar recomendaciones personalizadas."
+    matTooltipPosition="above"
+    style="font-size: 18px; width: 18px; height: 18px; color: #9aa0a6; cursor: help; vertical-align: middle; margin-left: 10px;"
+  >help_outline</mat-icon>
   <span>{{ selectedFile?.name }}</span>
   <span *ngIf="convertingVideo" style="margin-left: 10px; color: #1976d2;">
     (Converting to MP4 for preview...)
