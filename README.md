@@ -1,6 +1,7 @@
-# ViGenAiR — Guía de Despliegue Completa
+# Creative_Intelligence_For_Youtube
+ — Guía de Despliegue Completa
 
-> **ViGenAiR** (Video Generation with AI for Recrafting) es una herramienta que usa Inteligencia Artificial para analizar videos publicitarios, extraer sus escenas, generar variantes optimizadas y crear activos de texto para campañas de Demand Gen.
+> **Creative_Intelligence_For_Youtube** (Video Generation with AI for Recrafting) es una herramienta que usa Inteligencia Artificial para analizar videos publicitarios, extraer sus escenas, generar variantes optimizadas y crear activos de texto para campañas de Demand Gen.
 
 ---
 
@@ -20,7 +21,7 @@
 
 ## 1. ¿Cómo funciona el proyecto?
 
-ViGenAiR tiene **dos partes** que trabajan juntas a través de un Bucket de Google Cloud Storage (GCS):
+Creative_Intelligence_For_Youtube tiene **dos partes** que trabajan juntas a través de un Bucket de Google Cloud Storage (GCS):
 
 ### Motor de Procesamiento de Video (Python)
 - **Carpeta:** `service/`
@@ -211,7 +212,7 @@ cd /ruta/a/vigenair_migration_node
 **Paso 2.** Ejecuta el comando de despliegue. Reemplaza las variables con los datos de tu proyecto:
 
 ```bash
-gcloud run deploy vigneair-node \
+gcloud run deploy Creative_Intelligence_For_Youtube-node \
   --source . \
   --region us-central1 \
   --allow-unauthenticated \
@@ -237,7 +238,7 @@ gcloud run deploy vigneair-node \
 ✓ Creating Revision...
 ✓ Routing traffic...
 Done.
-Service URL: https://vigneair-node-XXXXX.us-central1.run.app   ← ¡Esta es tu URL!
+Service URL: https://Creative_Intelligence_For_Youtube-node-XXXXX.us-central1.run.app   ← ¡Esta es tu URL!
 ```
 
 **Paso 4.** Abre la URL en tu navegador. ¡Deberías ver la interfaz de ViGenAiR funcionando!
@@ -311,7 +312,7 @@ Cuando hagas cambios en el código y quieras publicar una nueva versión, simple
 ```bash
 cd /ruta/a/vigenair_migration_node
 
-gcloud run deploy vigneair-node \
+gcloud run deploy Creative_Intelligence_For_Youtube \
   --source . \
   --region us-central1 \
   --allow-unauthenticated \
