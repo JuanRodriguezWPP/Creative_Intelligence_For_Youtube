@@ -149,72 +149,15 @@ vigenair_migration_node/
 
 > **¿Qué hace este paso?** Crea todo lo necesario en Google Cloud: el Bucket de almacenamiento, habilita las APIs (Vertex AI, Video Intelligence, etc.), configura los permisos de seguridad y despliega la Cloud Function de Python que procesa los videos.
 
-### Opción A: Usando Terraform (recomendado para empresas)
+Para desplegar esta parte, usaremos un script automatizado que ya viene incluido en el proyecto.
 
-Terraform lee archivos de configuración y crea toda la infraestructura automáticamente. Si algo sale mal, puedes destruir todo con un solo comando.
-
-**Paso 1.** Abre tu terminal y entra a la carpeta de Terraform:
-
-```bash
-cd terraform
-```
-
-**Paso 2.** Copia la plantilla de variables y editala con los datos de tu proyecto:
-
-```bash
-cp terraform.tfvars.template terraform.tfvars
-```
-
-Abre `terraform.tfvars` en tu editor y reemplaza los valores:
-
-```hcl
-project_id   = "tu-project-id-de-gcp"
-region       = "us-central1"
-gcs_location = "us-central1"
-```
-
-**Paso 3.** Configura las variables de entorno de Python. Abre `service/.env.yaml` y reemplaza:
-
-```yaml
-GCP_PROJECT_ID: 'tu-project-id-de-gcp'
-GCP_LOCATION: 'us-central1'
-```
-
-**Paso 4.** Ejecuta el script de preparación (da permisos iniciales):
-
-```bash
-chmod +x pre_deploy.sh
-./pre_deploy.sh
-```
-
-**Paso 5.** Inicializa, revisa y despliega:
-
-```bash
-# Descarga los plugins necesarios
-terraform init
-
-# Muestra un resumen de lo que va a crear (solo lectura, no cambia nada)
-terraform plan
-
-# Crea toda la infraestructura (te pedirá confirmación)
-terraform apply
-```
-
-> **Nota:** Este proceso tarda entre 3-5 minutos. Al terminar, verás un resumen de todo lo que se creó.
-
----
-
-### Opción B: Usando el script bash (alternativa manual)
-
-Si no tienes Terraform instalado, puedes usar el script que viene incluido.
-
-**Paso 1.** Entra a la carpeta del servicio:
+**Paso 1.** Abre tu terminal y entra a la carpeta del servicio:
 
 ```bash
 cd service
 ```
 
-**Paso 2.** Abre `deploy.sh` en tu editor y busca/reemplaza estas etiquetas con los valores reales de tu proyecto:
+**Paso 2.** Abre el archivo `deploy.sh` en tu editor de código y busca/reemplaza estas etiquetas con los valores reales de tu nuevo proyecto:
 
 | Etiqueta en el archivo | Reemplazar con | Ejemplo |
 |----------------------|---------------|---------|
@@ -223,7 +166,7 @@ cd service
 | `<gcs-location>` | La ubicación del bucket | `us-central1` |
 | `<gcp-region>` | La región de Cloud Functions | `us-central1` |
 
-**Paso 3.** Haz lo mismo con `service/.env.yaml`:
+**Paso 3.** Haz exactamente lo mismo con el archivo `service/.env.yaml`:
 
 ```yaml
 GCP_PROJECT_ID: 'mi-empresa-prod-12345'
@@ -248,8 +191,8 @@ chmod +x deploy.sh
 
 1. Ve a la [Consola de Google Cloud](https://console.cloud.google.com)
 2. En el menú lateral, busca **"Cloud Functions"**
-3. Deberías ver una función llamada **`vigenair`** con estado **Activo**
-4. En **"Cloud Storage" → "Buckets"** deberías ver tu bucket creado
+3. Deberías ver una función llamada **`vigenair`** con estado **Activo** ✅
+4. En **"Cloud Storage" → "Buckets"** deberías ver tu bucket creado exitosamente.
 
 ---
 
