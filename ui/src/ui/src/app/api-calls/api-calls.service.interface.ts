@@ -239,6 +239,7 @@ export interface V2GeoAdaptacion {
 
 export interface V2Territory {
   territorio_id?: string;
+  nombre?: string;
   resumen?: string;
   caracteristicas_clave?: V2GeoCaracteristica[];
   indicadores_cualitativos?: V2GeoIndicador[];

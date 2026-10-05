@@ -255,6 +255,8 @@ export class AppComponent {
   microOpportunitiesJson = '';
   mapInstance: any = null;
   deckOverlay: any = null;
+  topClustersData: any[] = [];
+  cardMapInstances: any[] = [];
   modalMapInstance: any = null;
   modalDeckOverlay: any = null;
   currentYear = new Date().getFullYear();
@@ -270,7 +272,7 @@ export class AppComponent {
       reportData?.['creative_services'],
       validateCreativeServicesResponse,
       CREATIVE_SERVICES_MOCK,
-      environment.enableReportMocks,
+      true, // Siempre true porque es un catálogo estático
     );
   }
 
@@ -368,7 +370,11 @@ export class AppComponent {
   }
 
   selectOpportunity(index: number): void {
-    if (index >= 0 && index < this.territoryOpportunities.length) this.selectedOpportunityIndex = index;
+    if (this.selectedOpportunityIndex === index) {
+      this.selectedOpportunityIndex = -1;
+    } else if (index >= 0 && index < this.territoryOpportunities.length) {
+      this.selectedOpportunityIndex = index;
+    }
   }
 
   setAdaptationsOpportunityFilter(filter: AdaptationOpportunityFilter): void {
@@ -380,6 +386,10 @@ export class AppComponent {
     if (this.isTerritoryModalOpen) this.closeTerritoryModal();
   }
   // ────────────────────────────────────────────────────────────────────────────
+  
+  trackByIndex(index: number, item: any): any {
+    return item?.index !== undefined ? item.index : index;
+  }
 
   get hasGeoData(): boolean {
     return this.aiSummaryJson.length > 0;
@@ -621,6 +631,11 @@ export class AppComponent {
               return { id_centro: cluster.center_id, audiencia_concentrada: cluster.adultos_totales, error: "H3 inválido" };
             }
           });
+
+          this.topClustersData = top5Clusters.map((tc, i) => ({
+            ...tc,
+            hexagons: clusters[i].hexagons
+          }));
 
           this.microOpportunitiesJson = JSON.stringify({
             contexto_estrategico: "Micro Oportunidades - Top 5 clústeres hiper-concentrados (Agrupados por cercanía de hasta 2 anillos)",
@@ -2348,7 +2363,7 @@ export class AppComponent {
 
   /** Nombre del territorio sin el sufijo de agrupación, para el título de la tarjeta. */
   getTerritoryName(territory: V2Territory): string {
-    return (territory.demografia?.nombre || 'Territorio').split(' + ')[0].trim();
+    return (territory.nombre || territory.demografia?.nombre || 'Territorio').split(' + ')[0].trim();
   }
 
   /** Subtítulo de la tarjeta: clasificación del territorio. */
@@ -2444,6 +2459,79 @@ export class AppComponent {
 
       this.mapInstance.addControl(this.deckOverlay as any);
     }
+    
+    this.initCardMaps();
+  }
+
+  initCardMaps() {
+    if (!this.mapScriptsLoaded) {
+      setTimeout(() => this.initCardMaps(), 500);
+      return;
+    }
+    
+    const territorios = this.compassData?.geo_intelligence?.territorios || [];
+    if (!territorios.length || !this.topClustersData.length) return;
+
+    // Wait for ngFor to render the DOM elements
+    if (!document.getElementById('card-map-0')) {
+      setTimeout(() => this.initCardMaps(), 200);
+      return;
+    }
+
+    this.cardMapInstances.forEach(m => {
+      if (m && m.map) m.map.remove();
+    });
+    this.cardMapInstances = [];
+
+    territorios.forEach((ter, idx) => {
+      const containerId = 'card-map-' + idx;
+      const mapContainer = document.getElementById(containerId);
+      if (!mapContainer) return;
+      
+      const clusterData = this.topClustersData[idx];
+      if (!clusterData || !clusterData.coordenada_central) return;
+      
+      const [latStr, lngStr] = clusterData.coordenada_central.split(',');
+      const lat = parseFloat(latStr.trim());
+      const lng = parseFloat(lngStr.trim());
+      
+      const map = new maplibregl.Map({
+        container: containerId,
+        style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+        center: [lng, lat],
+        zoom: 7,
+        pitch: 30,
+        bearing: 0,
+        interactive: false,
+        attributionControl: false
+      });
+      
+      const clusterHexagons = new Set(clusterData.hexagons || []);
+      const filteredH3Data = (this.h3MapData || []).filter((d: any) => clusterHexagons.has(d.h3_id));
+      
+      if (filteredH3Data.length > 0) {
+        const h3Layer = new deck.H3HexagonLayer({
+          id: 'card-h3-layer-' + idx,
+          data: filteredH3Data,
+          pickable: false,
+          wireframe: false,
+          filled: true,
+          extruded: false,
+          coverage: 0.8,
+          getHexagon: (d: any) => d.h3_id,
+          getFillColor: (d: any) => this.getH3FillColor(d.value)
+        });
+
+        const deckOverlay = new deck.MapboxOverlay({
+          interleaved: true,
+          layers: [h3Layer]
+        });
+
+        map.addControl(deckOverlay as any);
+      }
+      
+      this.cardMapInstances.push({ map });
+    });
   }
 
   initModalGeoMap() {
@@ -3474,6 +3562,22 @@ export class AppComponent {
       return `**Hallazgo:** ${insightData.hallazgo || 'N/A'}  \n**Acción:** ${insightData.accion || 'N/A'}`;
     }
     return String(insightData || 'N/A');
+  }
+
+  getScreenshotForTimestamp(timestamp_s: number): string {
+    if (!this.avSegments || this.avSegments.length === 0) {
+      return 'assets/formats/original_creative.png';
+    }
+    
+    let targetSegment = this.avSegments.find(seg => timestamp_s >= seg.start_s && timestamp_s <= seg.end_s);
+    
+    if (!targetSegment) {
+      targetSegment = this.avSegments.reduce((prev, curr) => {
+        return (Math.abs(curr.start_s - timestamp_s) < Math.abs(prev.start_s - timestamp_s)) ? curr : prev;
+      });
+    }
+    
+    return targetSegment.segment_screenshot_uri || 'assets/formats/original_creative.png';
   }
 
   getSceneAnalysis(): any[] {

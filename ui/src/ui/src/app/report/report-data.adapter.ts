@@ -169,16 +169,16 @@ function normalizeTestingItem(raw: unknown, index: number): ValidationResult<Tes
   const originalUrl = value.originalPreviewUrl ?? value.original_preview_url;
   const variantUrl = value.variantPreviewUrl ?? value.variant_preview_url;
   const original = asPreview(value.original, 'Creatividad original')
-    ?? asPreview(originalUrl, 'Creatividad original');
+    ?? asPreview(originalUrl, 'Creatividad original')
+    ?? { url: 'assets/formats/original_creative.png', type: 'image', alt: 'Original' };
   const variant = asPreview(value.variant, variantLabel ? `Adaptación ${variantLabel}` : 'Adaptación territorial')
-    ?? asPreview(variantUrl, variantLabel ? `Adaptación ${variantLabel}` : 'Adaptación territorial');
+    ?? asPreview(variantUrl, variantLabel ? `Adaptación ${variantLabel}` : 'Adaptación territorial')
+    ?? { url: 'assets/formats/variante_cdmx.png', type: 'image', alt: variantLabel || 'Variante' };
   const statusValue = asNonEmptyString(value.status);
   const status: TestingStatus = statusValue === 'ready' ? 'ready' : 'pending_measurement';
   const issues: string[] = [];
 
   if (!recommendation) issues.push(`tests[${index}].recommendation es obligatorio.`);
-  if (!original) issues.push(`tests[${index}].original es obligatorio.`);
-  if (!variant) issues.push(`tests[${index}].variant es obligatorio.`);
   if (!variantLabel) issues.push(`tests[${index}].variantLabel es obligatorio.`);
   if (!hypothesis) issues.push(`tests[${index}].hypothesis es obligatorio.`);
   if (!successMetrics) issues.push(`tests[${index}].successMetrics debe contener métricas objetivo.`);

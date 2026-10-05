@@ -31,6 +31,7 @@ export interface TerritoryAdaptationCardViewModel {
   tags: string[];
   idealFor: string[];
   previewUrl: string | null;
+  timestamp_s?: number;
 }
 
 export interface TerritoryModalViewModel {

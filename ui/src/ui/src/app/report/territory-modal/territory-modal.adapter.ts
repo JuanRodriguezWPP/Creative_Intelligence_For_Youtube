@@ -51,7 +51,17 @@ export function buildTerritoryModalViewModel(territory: V2Territory | null): Ter
       });
       
       associatedAdaptations.forEach((element, elementIndex) => {
-        const previewAsset = `assets/formats/${element.formato?.toLowerCase().replace(/\\s+/g, '_')}.png`; // Try to use format name
+        const previewAsset = `assets/formats/${element.formato?.toLowerCase().replace(/\s+/g, '_')}.png`; // Try to use format name
+        
+        // Ser súper defensivos con la forma en que la IA podría retornar el segundo de la evidencia
+        let extractedTimestamp: number | undefined = undefined;
+        if (item.evidencia) {
+          const raw = (item.evidencia as any).timestamp_s ?? (item.evidencia as any).timestamp ?? (item.evidencia as any).segundo;
+          if (raw !== undefined && raw !== null) {
+            extractedTimestamp = Number(raw);
+          }
+        }
+
         adaptations.push({
           id: `${index}-${elementIndex}`,
           sourceOpportunityIndex: index,
@@ -64,6 +74,7 @@ export function buildTerritoryModalViewModel(territory: V2Territory | null): Ter
             .filter(value => value !== NOT_AVAILABLE),
           idealFor: element.ideal_para || [],
           previewUrl: previewAssets[(index + elementIndex) % previewAssets.length], // Defaulting to rotation for now, as format assets might not exist
+          timestamp_s: extractedTimestamp,
         });
       });
     });

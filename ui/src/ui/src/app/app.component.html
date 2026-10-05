@@ -13,28 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<mat-toolbar class="sticky ci-app-topbar" *ngIf="stepper && stepper.selectedIndex > 0">
-  <div class="ci-app-brand">
-    <strong>Creative Intelligence</strong>
-    <span class="ci-app-brand-divider" aria-hidden="true"></span>
-    <span>Advanced TV · YouTube</span>
-  </div>
-  <span class="ci-app-topbar-spacer"></span>
-  <button type="button" mat-icon-button class="ci-app-icon-btn" matTooltip="Buscar" aria-label="Buscar">
-    <mat-icon>search</mat-icon>
-  </button>
-  <button type="button" mat-icon-button class="ci-app-icon-btn" matTooltip="Notificaciones" aria-label="Notificaciones">
-    <mat-icon>notifications_none</mat-icon>
-  </button>
-  <span class="ci-app-avatar" role="img" [attr.aria-label]="'Usuario: ' + (advertiserName || 'Creative Intelligence')">{{ userInitials }}</span>
-  <span #renderQueueButtonSpan [hidden]="true">
-    <button mat-icon-button matTooltip="Cola de renderizado" [matBadge]="renderQueue.length"
-      [matBadgeHidden]="renderQueue.length === 0" matBadgeColor="accent" matBadgeSize="small"
-      (click)="toggleRenderQueueSidenav()">
-      <mat-icon fontIcon="queue_play_next"></mat-icon>
-    </button>
-  </span>
-</mat-toolbar>
+<!-- ── TOP BAR REMOVED ────────────────────────────────────── -->
 <div [hidden]="!loading" class="sticky top-64">
   <mat-progress-bar mode="indeterminate"></mat-progress-bar>
 </div>
@@ -78,21 +57,7 @@ limitations under the License.
           <!-- File chooser permanece montado: el pipeline de subida lo usa vía ViewChild -->
           <file-chooser class="ciw-file-chooser-host" (file)="onFileSelected($event)"></file-chooser>
 
-          <!-- ── TOP BAR — visible en landing y pasos ─────────────── -->
-          <header class="ciw-topbar">
-            <div class="ciw-brand">
-              <strong>Creative Intelligence</strong>
-              <span class="ciw-brand-sep" aria-hidden="true"></span>
-              <span class="ciw-brand-sub">Advanced TV · YouTube</span>
-            </div>
-            <div class="ciw-topbar-actions">
-              <button type="button" class="ciw-link-btn" (click)="saveWizardDraft()">Guardar borrador</button>
-              <span class="ciw-avatar" role="img" [attr.aria-label]="'Usuario: ' + (advertiserName || 'sin responsable')">{{
-                userInitials }}</span>
-              <mat-icon class="ciw-avatar-caret" aria-hidden="true">expand_more</mat-icon>
-            </div>
-          </header>
-
+          <!-- ── TOP BAR REMOVED AS REQUESTED ─────────────── -->
           @if (wizardStep === 0) {
           <!-- ── LANDING ─────────────────────────────────────────────── -->
           <section class="ciw-landing" aria-labelledby="ciw-landing-title">
@@ -193,13 +158,7 @@ limitations under the License.
             <!-- ═══ 02 · CONTEXTO DE CAMPAÑA Y MARCA ═══ -->
             @if (wizardStep === 2) {
             <section class="ciw-step" aria-labelledby="ciw-step-2-title">
-              <div class="ciw-step-head">
-                <span class="ciw-step-num">02</span>
-                <div>
-                  <h2 id="ciw-step-2-title">Contexto de campaña y marca</h2>
-                  <p>Define el contexto estratégico del análisis.</p>
-                </div>
-              </div>
+
 
               <div class="ciw-card ciw-card--wide">
                 <h3 class="ciw-card-title">Objetivos y audiencia</h3>
@@ -284,13 +243,7 @@ limitations under the License.
             <!-- ═══ 03 · INPUTS DE INTELIGENCIA ═══ -->
             @if (wizardStep === 3) {
             <section class="ciw-step" aria-labelledby="ciw-step-3-title">
-              <div class="ciw-step-head">
-                <span class="ciw-step-num">03</span>
-                <div>
-                  <h2 id="ciw-step-3-title">Inputs de inteligencia <span class="ciw-pill">Opcional</span></h2>
-                  <p>Enriquece el análisis con contexto adicional.</p>
-                </div>
-              </div>
+
 
               <div class="ciw-card">
                 <div class="ciw-geo-card">
@@ -1692,12 +1645,6 @@ limitations under the License.
                     style="width: 20px; height: 20px; border-radius: 50%; background: rgba(182, 255, 0, 0.22); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
                     <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
                   </div>
-                  <span>Territorio (agrupación)</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <div style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">
-                    <div style="width: 6px; height: 6px; border-radius: 50%; background: #B6FF00;"></div>
-                  </div>
                   <span>GeoKey</span>
                 </div>
               </div>
@@ -1721,10 +1668,10 @@ limitations under the License.
 
             <div class="v2-territories-grid">
               <article class="v2-territory-card"
-                *ngFor="let ter of compassData?.geo_intelligence?.territorios; let idx = index"
-                [style.background-image]="'url(' + getTerritoryImage(idx) + ')'">
-                <div class="v2-territory-scrim" aria-hidden="true"></div>
-                <div class="v2-territory-card-content">
+                *ngFor="let ter of compassData?.geo_intelligence?.territorios; let idx = index">
+                <div [id]="'card-map-' + idx" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; border-radius: 20px; overflow: hidden; pointer-events: none;"></div>
+                <div class="v2-territory-scrim" aria-hidden="true" style="z-index: 1;"></div>
+                <div class="v2-territory-card-content" style="position: relative; z-index: 2;">
                   <span class="v2-territory-idx">0{{ idx + 1 }}</span>
                   <div class="v2-territory-body">
                     <h4 class="v2-territory-title">{{ getTerritoryName(ter) }}</h4>
@@ -1995,7 +1942,6 @@ limitations under the License.
         <div class="v2-tm-tabs-scroll" style="display: flex; gap: 12px; overflow-x: auto; padding-right: 20px;">
           <button type="button" class="v2-tm-tab" *ngFor="let ter of compassData?.geo_intelligence?.territorios; let idx = index"
             [class.active]="selectedTerritoryIndex === idx" [attr.aria-pressed]="selectedTerritoryIndex === idx"
-            [style.background-image]="'linear-gradient(90deg, rgba(8,10,9,.2), rgba(8,10,9,.82)), url(' + getTerritoryImage(idx) + ')'"
             (click)="selectTerritory(idx)">
             <span class="v2-tm-tab-num">{{ (idx + 1) < 10 ? '0' + (idx + 1) : (idx + 1) }}</span>
             <span class="v2-tm-tab-name">{{ ter.demografia?.nombre || ter.resumen || ('Territorio ' + (idx + 1)) }}</span>
@@ -2040,7 +1986,7 @@ limitations under the License.
               </div>
             </div>
             <h2 style="font-size: 36px; font-weight: 800; line-height: 1.1; margin: 0; color: #fff;"
-              [innerHTML]="(activeTerritory.demografia?.nombre || activeTerritory.resumen || 'Territorio ' + (selectedTerritoryIndex + 1)).replace(' + ', '<br>+ ')"></h2>
+              [innerHTML]="(activeTerritory.nombre || activeTerritory.demografia?.nombre || 'Territorio ' + (selectedTerritoryIndex + 1)).replace(' + ', '<br>+ ')"></h2>
           </div>
 
           <div class="v2-tm-territory-chips">
@@ -2051,7 +1997,7 @@ limitations under the License.
             <h3>{{ territoryOpportunities.length }} oportunidades identificadas</h3>
             <p>Basadas en señales de tu video, contexto territorial y GeoKeys relevantes.</p>
             <nav class="v2-tm-opportunity-list" aria-label="Oportunidades del territorio">
-              <button type="button" *ngFor="let opportunity of territoryOpportunities"
+              <button type="button" *ngFor="let opportunity of territoryOpportunities; trackBy: trackByIndex"
                 [class.active]="selectedOpportunityIndex === opportunity.index"
                 (click)="selectOpportunity(opportunity.index)">
                 <span>{{ opportunity.numberLabel }}</span>
@@ -2167,34 +2113,31 @@ limitations under the License.
                   style="z-index: 2; position: absolute; top: 24px; right: 24px; display: flex; flex-direction: column; gap: 12px; background: rgba(23, 27, 25, 0.9); padding: 20px 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px);">
                   <h4 style="color: #fff; font-size: 14px; font-weight: 700; margin: 0 0 8px 0;">GeoKeys principales
                   </h4>
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <div
-                      style="width: 16px; height: 16px; border-radius: 50%; background: rgba(182,255,0,0.2); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
-                      <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
+                  <!-- Dynamic GeoKeys -->
+                  <ng-container *ngIf="activeTerritory.temas_mapa?.length; else oldLegend">
+                    <div *ngFor="let tema of activeTerritory.temas_mapa" style="display: flex; align-items: center; gap: 12px;">
+                      <div style="width: 16px; height: 16px; border-radius: 50%; background: rgba(182,255,0,0.2); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
+                      </div>
+                      <span style="color: #E2E8F0; font-size: 14px;">{{ tema }}</span>
                     </div>
-                    <span style="color: #E2E8F0; font-size: 14px;">Bienestar</span>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <div
-                      style="width: 16px; height: 16px; border-radius: 50%; background: rgba(182,255,0,0.2); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
-                      <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
+                  </ng-container>
+
+                  <!-- Fallback GeoKeys -->
+                  <ng-template #oldLegend>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <div style="width: 16px; height: 16px; border-radius: 50%; background: rgba(182,255,0,0.2); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
+                      </div>
+                      <span style="color: #E2E8F0; font-size: 14px;">Bienestar</span>
                     </div>
-                    <span style="color: #E2E8F0; font-size: 14px;">Vida en movimiento</span>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <div
-                      style="width: 16px; height: 16px; border-radius: 50%; background: rgba(182,255,0,0.2); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
-                      <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <div style="width: 16px; height: 16px; border-radius: 50%; background: rgba(182,255,0,0.2); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
+                      </div>
+                      <span style="color: #E2E8F0; font-size: 14px;">Vida en movimiento</span>
                     </div>
-                    <span style="color: #E2E8F0; font-size: 14px;">Salud preventiva</span>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <div
-                      style="width: 16px; height: 16px; border-radius: 50%; background: rgba(182,255,0,0.2); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
-                      <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
-                    </div>
-                    <span style="color: #E2E8F0; font-size: 14px;">Equilibrio diario</span>
-                  </div>
+                  </ng-template>
                 </div>
               </div>
 
@@ -2275,7 +2218,7 @@ limitations under the License.
 
             <!-- Oportunidades Tab Content -->
             <section *ngIf="activeTerritoryTab === 'opportunities'" class="v2-tm-opportunities">
-              <article *ngFor="let opportunity of territoryOpportunities" class="v2-tm-accordion"
+              <article *ngFor="let opportunity of territoryOpportunities; trackBy: trackByIndex" class="v2-tm-accordion"
                 [class.active]="selectedOpportunityIndex === opportunity.index">
                 <button type="button" class="v2-tm-accordion-header"
                   [attr.aria-expanded]="selectedOpportunityIndex === opportunity.index"
@@ -2285,7 +2228,7 @@ limitations under the License.
                   <div style="background: rgba(182, 255, 0, 0.1); color: #B6FF00; padding: 4px 12px; border-radius: 20px; font-size: 12px; white-space: nowrap;">
                     {{ opportunity.adaptationCount }} adaptación(es)
                   </div>
-                  <span class="v2-tm-relevance">{{ opportunity.relevanceLabel }}</span>
+                  <span class="v2-tm-relevance" [class.v2-tm-relevance-high]="opportunity.relevanceLabel === 'Alta relevancia'" [class.v2-tm-relevance-med]="opportunity.relevanceLabel === 'Media relevancia'">{{ opportunity.relevanceLabel }}</span>
                   <mat-icon>{{ selectedOpportunityIndex === opportunity.index ? 'expand_less' : 'expand_more' }}</mat-icon>
                 </button>
                 <div class="v2-tm-opportunity-detail" *ngIf="selectedOpportunityIndex === opportunity.index" style="padding: 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
@@ -2304,7 +2247,7 @@ limitations under the License.
                     <div *ngIf="opportunity.evidenceObj; else txtEvidence" style="background: #171B19; border: 1px solid #2A302D; border-radius: 8px; overflow: hidden; margin-bottom: 8px;">
                       <!-- Simulated Video Thumbnail via CSS or static image, with timestamp overlay -->
                       <div style="position: relative; width: 100%; height: 100px; background: #0A0D0B; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                        <img src="assets/formats/original_creative.png" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
+                        <img [src]="getScreenshotForTimestamp(opportunity.evidenceObj.timestamp_s)" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
                         <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px;">
                           00:{{ (opportunity.evidenceObj.timestamp_s < 10 ? '0' : '') + opportunity.evidenceObj.timestamp_s }}
                         </div>
@@ -2341,35 +2284,39 @@ limitations under the License.
 
             <!-- Adaptaciones Tab Content -->
             <section *ngIf="activeTerritoryTab === 'adaptations'" class="v2-tm-adaptations">
-              <header class="v2-tm-filter-header">
-                <div class="v2-tm-filters">
-                  <button type="button" [class.active]="adaptationsOpportunityFilter === 'all'"
-                    (click)="setAdaptationsOpportunityFilter('all')">Filtrar por oportunidad</button>
-                  <button type="button" *ngFor="let opportunity of territoryOpportunities"
-                    [class.active]="adaptationsOpportunityFilter === opportunity.index"
-                    (click)="setAdaptationsOpportunityFilter(opportunity.index)">{{ opportunity.numberLabel }}</button>
+              <header class="v2-tm-filter-header" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                  <div>
+                    <h3 style="margin: 0; color: #fff; font-size: 20px; font-weight: 600;">{{ territoryAdaptations.length }} adaptaciones sugeridas</h3>
+                    <p style="margin: 4px 0 0; color: #A7AAA5; font-size: 14px;">A partir de las oportunidades identificadas en este territorio.</p>
+                  </div>
+                  <div class="v2-tm-filters" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;">
+                    <button type="button" style="padding: 6px 16px; border-radius: 999px; background: transparent; border: 1px solid #2A302D; color: #fff; cursor: pointer; font-size: 12px;" [class.active]="adaptationsOpportunityFilter === 'all'"
+                      (click)="setAdaptationsOpportunityFilter('all')">Todas</button>
+                    <button type="button" style="padding: 6px 16px; border-radius: 999px; background: transparent; border: 1px solid #2A302D; color: #fff; cursor: pointer; font-size: 12px;" *ngFor="let opportunity of territoryOpportunities; trackBy: trackByIndex"
+                      [class.active]="adaptationsOpportunityFilter === opportunity.index"
+                      (click)="setAdaptationsOpportunityFilter(opportunity.index)">Oportunidad {{ opportunity.numberLabel }}</button>
+                  </div>
                 </div>
               </header>
               <div class="v2-tm-adaptation-grid">
                 <article class="v2-tm-adaptation-card" *ngFor="let card of filteredTerritoryAdaptations">
                   <div class="v2-tm-card-preview">
-                    <img *ngIf="card.previewUrl" [src]="card.previewUrl" [alt]="'Preview de ' + card.title">
-                    <mat-icon class="v2-tm-play">play_circle</mat-icon>
-                    <span>{{ card.sourceOpportunityLabel }}</span>
-                    <small>0:15</small>
+                    <img *ngIf="card.timestamp_s !== undefined" [src]="getScreenshotForTimestamp(card.timestamp_s)" [alt]="'Preview de ' + card.title">
+                    <img *ngIf="card.timestamp_s === undefined && card.previewUrl" [src]="card.previewUrl" [alt]="'Preview de ' + card.title">
+                    <span class="v2-tm-preview-pill" [attr.data-opp]="card.sourceOpportunityIndex">{{ card.sourceOpportunityLabel }}</span>
+                    <mat-icon class="v2-tm-play">play_circle_filled</mat-icon>
+                    <small class="v2-tm-preview-time">0:15</small>
                   </div>
                   <div class="v2-tm-card-body">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                      <span class="v2-tm-taxonomy" [attr.data-type]="card.classification">{{ card.classification }}</span>
-                    </div>
+                    <span class="v2-tm-taxonomy" [attr.data-type]="card.classification">{{ card.classification }}</span>
                     <h4>{{ card.title }}</h4>
                     <p>{{ card.description }}</p>
                     <div class="v2-tm-format"><small>Formato sugerido</small><strong>{{ card.suggestedFormat }}</strong></div>
-                    <!-- Ideal para (Funcionales) -->
-                    <div *ngIf="card.idealFor?.length" style="margin-top: 12px;">
-                      <small style="color: #A7AAA5; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Ideal para</small>
+                    <div *ngIf="card.idealFor?.length" style="margin-top: 12px; margin-bottom: 24px;">
+                      <small style="color: #A7AAA5; font-size: 11px; display: block; margin-bottom: 6px;">Ideal para</small>
                       <div class="v2-tm-card-tags" style="gap: 4px;">
-                        <span *ngFor="let ideal of card.idealFor" style="background: rgba(182, 255, 0, 0.1); color: #B6FF00; border: 1px solid rgba(182, 255, 0, 0.2);">{{ ideal }}</span>
+                        <span *ngFor="let ideal of card.idealFor">{{ ideal }}</span>
                       </div>
                     </div>
                     <button type="button" class="v2-tm-card-cta" [attr.aria-label]="'Ver adaptación ' + card.title">

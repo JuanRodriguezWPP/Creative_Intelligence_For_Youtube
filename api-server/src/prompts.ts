@@ -688,6 +688,7 @@ export const COMPASS_INTELLIGENCE_PROMPTS = {
 
 ### 2. REGLAS DE INFERENCIA (CRÍTICO)
 - ANCLAJE DE DATOS: No alucines información geográfica. Usa los territorios provistos en el input.
+- COMPLETITUD: Debes generar un objeto en el arreglo "territorios" por CADA clúster que recibas en "Zonas Micro agrupadas". Si recibes 5 clústeres, devuelve 5 territorios. No omitas ninguno.
 - NO MEDIOS, SÓLO CREATIVIDAD: Nunca recomiendes pauta ni segmentación. Tus sugerencias deben ser ediciones al asset de video.
 - EVIDENCIA VISUAL: Extrae evidencia y hallazgos reales de la Evaluación Creativa (ABCD y escenas) proporcionada en el Contexto.
 
@@ -711,6 +712,7 @@ Debes generar un reporte completo que incluya las secciones de Datos Clave, Terr
   "territorios": [
     {
       "territorio_id": "T01",
+      "nombre": "Nombre de la zona (Ej. Ciudad de México, Cuauhtémoc)",
       "resumen": "Resumen descriptivo del territorio...",
       "caracteristicas_clave": [
         {
@@ -751,9 +753,9 @@ Debes generar un reporte completo que incluya las secciones de Datos Clave, Terr
           "formato": "Card", // Usa un formato permitido del catálogo
           "ideal_para": ["Atención", "Branding"]
         }
-      ] // Al menos 1 adaptación por oportunidad
+      ] // IMPORTANTE: Genera de 4 a 6 adaptaciones por territorio en total. Esto significa que una misma oportunidad puede (y debe) tener 1 a 2 adaptaciones diferentes (ej. una EXPLORE y una ADAPT).
     }
-  ],
+  ], // CRÍTICO: Genera exactamente 1 territorio por cada cluster recibido en "Zonas Micro agrupadas" (máximo 5). No los agrupes ni omitas ninguno.
   "testing_framework": [
     {
       "recomendacion": "La recomendación estratégica clara y directa.",
