@@ -1,0 +1,103 @@
+<section class="v2-testing-container" aria-labelledby="testing-framework-title">
+  <header class="v2-testing-section-head">
+    <div class="v2-testing-section-head-left">
+      <div class="v2-testing-section-num" aria-label="Sección 5 de 5">05 <span>/ 05</span></div>
+      <div class="v2-testing-section-title-group">
+        <h2 id="testing-framework-title">TESTING FRAMEWORK</h2>
+        <p>La oportunidad se convierte en una hipótesis de prueba.</p>
+      </div>
+    </div>
+    <p class="v2-testing-section-description">Define, testea y aprende. Este framework ayuda a validar el impacto de las adaptaciones territoriales mediante criterios de éxito acordados.</p>
+  </header>
+
+  <div *ngIf="section.state === 'mock'" class="v2-source-badge" role="status">LOCAL MOCK DATA</div>
+
+  <div *ngIf="section.data as content; else sectionState" class="v2-testing-list-wrap">
+    <article *ngFor="let test of content.tests; let testIndex = index" class="v2-testing-case" [attr.aria-labelledby]="'test-case-' + test.id">
+      <div class="v2-testing-context">
+        <div>
+          <span *ngIf="test.territory" class="v2-territory-label">{{ test.territory }}</span>
+          <span *ngIf="test.adaptationType" class="v2-adaptation-badge" [attr.data-type]="test.adaptationType">{{ test.adaptationType }}</span>
+        </div>
+        <span class="v2-measurement-status">Pendiente de medición</span>
+      </div>
+
+      <div class="v2-testing-grid" tabindex="0" aria-label="Flujo de prueba de cuatro pasos">
+        <div class="v2-testing-step-wrap">
+          <section class="v2-testing-card">
+            <div class="v2-testing-head-row">
+              <div class="v2-testing-icon-box green"><mat-icon aria-hidden="true">my_location</mat-icon></div>
+              <div><div class="v2-testing-step-num">STEP 1</div><h3 class="v2-testing-title" [id]="'test-case-' + test.id">Recomendación</h3></div>
+            </div>
+            <p class="v2-testing-desc">La oportunidad identificada en el territorio.</p>
+            <blockquote class="v2-testing-highlight">“{{ test.recommendation }}”</blockquote>
+          </section>
+          <div class="v2-testing-arrow" aria-hidden="true"><mat-icon>chevron_right</mat-icon></div>
+        </div>
+
+        <div class="v2-testing-step-wrap">
+          <section class="v2-testing-card">
+            <div class="v2-testing-head-row">
+              <div class="v2-testing-icon-box purple"><mat-icon aria-hidden="true">play_circle_filled</mat-icon></div>
+              <div><div class="v2-testing-step-num">STEP 2</div><h3 class="v2-testing-title">Original vs. Variante</h3></div>
+            </div>
+            <p class="v2-testing-desc">Creatividad original vs. adaptación territorial.</p>
+            <div class="v2-testing-images">
+              <figure>
+                <ng-container *ngIf="!failedPreviews.has(test.id + '-original'); else originalFallback">
+                  <img [src]="test.original.url" [alt]="test.original.alt" width="220" height="124" loading="lazy" (error)="markPreviewAsFailed(test.id + '-original')">
+                </ng-container>
+                <ng-template #originalFallback><div class="v2-preview-fallback"><mat-icon aria-hidden="true">image_not_supported</mat-icon></div></ng-template>
+                <figcaption>Original</figcaption>
+              </figure>
+              <figure>
+                <ng-container *ngIf="!failedPreviews.has(test.id + '-variant'); else variantFallback">
+                  <img [src]="test.variant.url" [alt]="test.variant.alt" width="220" height="124" loading="lazy" (error)="markPreviewAsFailed(test.id + '-variant')">
+                </ng-container>
+                <ng-template #variantFallback><div class="v2-preview-fallback"><mat-icon aria-hidden="true">image_not_supported</mat-icon></div></ng-template>
+                <figcaption>{{ test.variantLabel }}</figcaption>
+              </figure>
+            </div>
+          </section>
+          <div class="v2-testing-arrow" aria-hidden="true"><mat-icon>chevron_right</mat-icon></div>
+        </div>
+
+        <div class="v2-testing-step-wrap">
+          <section class="v2-testing-card">
+            <div class="v2-testing-head-row">
+              <div class="v2-testing-icon-box blue"><mat-icon aria-hidden="true">science</mat-icon></div>
+              <div><div class="v2-testing-step-num">STEP 3</div><h3 class="v2-testing-title">Hipótesis</h3></div>
+            </div>
+            <p class="v2-testing-desc">Qué esperamos que cambie con la adaptación.</p>
+            <blockquote class="v2-testing-highlight blue">“{{ test.hypothesis }}”</blockquote>
+          </section>
+          <div class="v2-testing-arrow" aria-hidden="true"><mat-icon>chevron_right</mat-icon></div>
+        </div>
+
+        <div class="v2-testing-step-wrap v2-testing-step-wrap--last">
+          <section class="v2-testing-card">
+            <div class="v2-testing-head-row">
+              <div class="v2-testing-icon-box orange"><mat-icon aria-hidden="true">insert_chart</mat-icon></div>
+              <div><div class="v2-testing-step-num">STEP 4</div><h3 class="v2-testing-title">Métrica de éxito</h3></div>
+            </div>
+            <p class="v2-testing-desc">KPIs objetivo acordados para evaluar el resultado; no representan resultados medidos.</p>
+            <ul class="v2-testing-list">
+              <li *ngFor="let metric of test.successMetrics">{{ metric }}</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <ng-template #sectionState>
+    <div class="v2-section-state" [attr.data-state]="section.state" role="status">
+      <mat-icon aria-hidden="true">{{ section.state === 'incomplete' ? 'warning_amber' : 'science' }}</mat-icon>
+      <div>
+        <strong>{{ section.state === 'incomplete' ? 'Framework incompleto' : 'Testing Framework pendiente' }}</strong>
+        <p *ngIf="section.state === 'incomplete'">La salida necesita recomendación, previews, hipótesis y métricas objetivo para mostrar el flujo.</p>
+        <p *ngIf="section.state !== 'incomplete'">El framework aparecerá cuando el análisis entregue una salida válida.</p>
+      </div>
+    </div>
+  </ng-template>
+</section>

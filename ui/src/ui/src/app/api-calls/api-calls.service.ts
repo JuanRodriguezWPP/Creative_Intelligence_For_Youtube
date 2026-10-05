@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, map, of } from 'rxjs';
+import { Observable, map, of, retry, timer } from 'rxjs';
 import { CONFIG } from '../../../../config';
 import { StringUtil } from '../../../../string-util';
 import {
@@ -65,41 +65,46 @@ export class ApiCallsService implements ApiCalls {
     contentType?: string
   ): Observable<string[]> {
     return new Observable<string[]>(subscriber => {
-      this.fileToBase64(file)
-        .then(base64 => {
-          const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'mp4';
-          const actualFilename = filename || `input.${fileExtension}`;
-          const actualContentType = contentType || file.type || 'video/mp4';
+      const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'mp4';
+      const actualFilename = filename || `input.${fileExtension}`;
+      const actualContentType = contentType || file.type || 'video/mp4';
 
-          const videoFolderTranscriptionSuffix = CONFIG.defaultTranscriptionService.charAt(0);
-          const sanitisedFileName = StringUtil.gcsSanitise(file.name);
-          const folder = `${sanitisedFileName}${CONFIG.videoFolderNameSeparator}${analyseAudio ? videoFolderTranscriptionSuffix : CONFIG.videoFolderNoAudioSuffix}${CONFIG.videoFolderNameSeparator}${Date.now()}${CONFIG.videoFolderNameSeparator}${encodedUserId}`;
+      const videoFolderTranscriptionSuffix = CONFIG.defaultTranscriptionService.charAt(0);
+      const sanitisedFileName = StringUtil.gcsSanitise(file.name);
+      const folder = `${sanitisedFileName}${CONFIG.videoFolderNameSeparator}${analyseAudio ? videoFolderTranscriptionSuffix : CONFIG.videoFolderNoAudioSuffix}${CONFIG.videoFolderNameSeparator}${Date.now()}${CONFIG.videoFolderNameSeparator}${encodedUserId}`;
 
-          const payload = {
-            base64Content: base64,
-            folder: folder,
-            filename: actualFilename,
-            contentType: actualContentType,
-          };
-
-          this.httpClient
-            .post<{ success: boolean; path: string }>(`${API_BASE_URL}/upload`, payload)
-            .subscribe({
-              next: () => {
-                const finalFilename = fileExtension === 'mov' ? 'input.mp4' : actualFilename;
-                const videoFilePath = `${CONFIG.cloudStorage.authenticatedEndpointBase}/${CONFIG.cloudStorage.bucket}/${encodeURIComponent(folder)}/${finalFilename}`;
-
-                if (fileExtension === 'mov') {
-                  subscriber.next([folder, videoFilePath, 'converting']);
-                } else {
-                  subscriber.next([folder, videoFilePath]);
-                }
-                subscriber.complete();
-              },
-              error: err => subscriber.error(err),
-            });
+      // Paso 1: Pedir al backend una Signed URL para subida directa
+      this.httpClient
+        .post<{ signedUrl: string; path: string }>(`${API_BASE_URL}/get-upload-url`, {
+          folder: folder,
+          filename: actualFilename,
+          contentType: actualContentType,
         })
-        .catch(err => subscriber.error(err));
+        .subscribe({
+          next: ({ signedUrl }) => {
+            // Paso 2: Subir el archivo RAW directamente a GCS (sin base64)
+            // Esto replica el flujo original de Apps Script: Browser → GCS directo
+            this.httpClient
+              .put(signedUrl, file, {
+                headers: { 'Content-Type': actualContentType },
+              })
+              .subscribe({
+                next: () => {
+                  const finalFilename = fileExtension === 'mov' ? 'input.mp4' : actualFilename;
+                  const videoFilePath = `${CONFIG.cloudStorage.authenticatedEndpointBase}/${CONFIG.cloudStorage.bucket}/${encodeURIComponent(folder)}/${finalFilename}`;
+
+                  if (fileExtension === 'mov') {
+                    subscriber.next([folder, videoFilePath, 'converting']);
+                  } else {
+                    subscriber.next([folder, videoFilePath]);
+                  }
+                  subscriber.complete();
+                },
+                error: err => subscriber.error(err),
+              });
+          },
+          error: err => subscriber.error(err),
+        });
     });
   }
 
@@ -117,7 +122,18 @@ export class ApiCallsService implements ApiCalls {
   getFromGcs(url: string, retryDelay = 0, maxRetries = 0): Observable<string> {
     return this.httpClient.get(`${API_BASE_URL}/gcs-file?path=${encodeURIComponent(url)}`, {
       responseType: 'text',
-    });
+    }).pipe(
+      retry({
+        count: maxRetries,
+        delay: (error, retryCount) => {
+          if (error.status && error.status === 404 && retryCount < maxRetries) {
+            console.log(`Esperando análisis de IA, reintentando (${retryCount}/${maxRetries})...`);
+            return timer(retryDelay);
+          }
+          throw error;
+        },
+      })
+    );
   }
 
   generateVariants(

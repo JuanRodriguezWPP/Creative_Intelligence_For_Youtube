@@ -1,0 +1,76 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "id": 1,
+      "severity": "HIGH",
+      "where": "Summary, FR-02, Acceptance Criteria 3–5, Request/normalización",
+      "problem": "El diseño vuelve a agrupar, sumar, ordenar y cortar el CSV para producir el Top 5, aunque la decisión vinculante exige consumir el Top 5 ya ordenado y sólo enriquecerlo sin recalcular ni reordenar.",
+      "fix": "Capturar como tuple inmutable los cinco territorios en el orden entregado por la lógica existente; unir H3 por ID/key sólo para enrichment, rechazar discrepancias y eliminar todo sort/reranking posterior. Añadir una prueba con audiencias en orden contrario que preserve exactamente el input."
+    },
+    {
+      "id": 2,
+      "severity": "HIGH",
+      "where": "FR-03/FR-04, contrato CreativeOverview, Ownership ABCD, AC 6–9",
+      "problem": "El contrato omite o transforma campos del output real del prompt ABCD, por lo que no puede conservar toda la salida original ni copiar sin modificación las tarjetas hallazgo/valor/acción.",
+      "fix": "Añadir ExistingAbcdEvaluationRaw completo dentro del reporte, validarlo directamente en evaluateFullVideo y conservarlo por deep equality; colocar score normalizado y evidence links en campos derivados separados con mapping 1:1 documentado."
+    },
+    {
+      "id": 3,
+      "severity": "MEDIUM",
+      "where": "NFR-02, límites del schema, ReportV1Request.top_territories",
+      "problem": "Hasta 50,000 H3 enviados dos veces y con geometría completa pueden exceder ampliamente el body de 5 MB aunque el schema los considere válidos.",
+      "fix": "Enviar cells[{h3_id,audience_value}] una sola vez, derivar geometría/bounds en backend y fijar un máximo total comprobado por un test de serialización bajo 5 MB."
+    },
+    {
+      "id": 4,
+      "severity": "MEDIUM",
+      "where": "FR-06, AC-12, PublicTerritorialSource, estrategia Geo",
+      "problem": "La provenance mezcla extracto y paráfrasis, usa date-time para una fecha de publicación y permite published_at null sin decidir si la fuente aún puede sostener un fact verified.",
+      "fix": "Separar verbatim_extract de display_paraphrase, usar format date para published_on y date-time para retrieved_at; una fecha ausente debe producir SOURCE_INCOMPLETE y no respaldar un fact verified salvo que se documente expresamente otra política."
+    },
+    {
+      "id": 5,
+      "severity": "MEDIUM",
+      "where": "GeoEvidenceProvider, secuencia/errores, DataGap",
+      "problem": "Fail-closed sólo está definido para provider disabled, cero fuentes y timeout; throws no-timeout y bundles/sources/facts inválidos no tienen resultado especificado.",
+      "fix": "Validar bundles antes del LLM, descartar evidencia inválida, añadir GEO_PROVIDER_ERROR y GEO_EVIDENCE_INVALID y producir null/unknown + gap sin llamar geo-enrichment cuando no queden fuentes válidas. Cubrir throws y fixtures malformed."
+    },
+    {
+      "id": 6,
+      "severity": "MEDIUM",
+      "where": "Secuencia de errores e idempotencia/persistencia",
+      "problem": "El claim declara failed pero no define transición pending→failed; un error puede dejar un pending fantasma y el replay actual regeneraría también fallos deterministas.",
+      "fix": "Definir CAS pending→failed en todo error terminal, guardar code/retryable/http_status y distinguir replay no-retryable de reacquire retryable; probar carreras contra complete y leases vencidos."
+    },
+    {
+      "id": 7,
+      "severity": "MEDIUM",
+      "where": "ReportMetadata.objective_key, score normalization, AC-7, legacy adapter",
+      "problem": "El mapa de objetivos omite shorts con raw_max 17 aunque existe en los prompts y tipos runtime; el tratamiento de históricos shorts queda ambiguo.",
+      "fix": "Crear una tabla canónica única con awareness 15, consideration 15, action 18, shorts 17, engagement 20 y general 20 y derivar enum/max/tests; o rechazar shorts explícitamente con LEGACY_OBJECTIVE_UNSUPPORTED sin convertirlo a general."
+    },
+    {
+      "id": 8,
+      "severity": "MEDIUM",
+      "where": "Catálogo fijo, Ownership ABCD, prompt architecture",
+      "problem": "El prompt protegido recomienda un catálogo legacy distinto, pero el diseño no impide que esos nombres se filtren a recomendaciones de View 3 pese al catálogo fijo nuevo.",
+      "fix": "Tratar raw ABCD como evidencia no autoritativa; sólo recommended_format_id y CreativeServiceRecommendation.format_id pueden recomendar formatos y deben validar contra la constante fija. No renderizar formatos legacy raw como servicios/adaptaciones y añadir un test Canvas/Video Card."
+    },
+    {
+      "id": 9,
+      "severity": "MEDIUM",
+      "where": "AC-10, GeoMetric, diccionario e integración View 3",
+      "problem": "El schema permite metrics vacías, pero AC-10 exige métricas unknown sin definir IDs/labels/unidades, dejando abierta la conservación o reinvención de las cuatro tarjetas hardcodeadas actuales.",
+      "fix": "Elegir metrics:[] + gap y un único empty state cuando no haya fuentes; mostrar audience_estimate aparte como adultos estimados, nunca habitantes. Alternativamente enumerar exhaustivamente un catálogo fijo de slots."
+    },
+    {
+      "id": 10,
+      "severity": "MEDIUM",
+      "where": "Compatibilidad con CompassData y entregable C",
+      "problem": "adaptLegacyCompassData referencia context y LegacyReportViewModel sin definirlos ni mapear cómo se obtienen H3, provenance, IDs y timestamps ausentes del CompassData real.",
+      "fix": "Definir LegacyAdapterContext y LegacyReportViewModel completos, aportar una tabla de mapping para cada campo v1 y devolver kind:v1 sólo después de schema+semantic validation; cubrir entradas legacy incompletas y formatos/objetivos no soportados."
+    }
+  ],
+  "reviewDoc": "/Applications/MAMP/htdocs/Production_Vigneair/vigenair_migration_node/.agents/tasks/creative-intelligence-report-v1/design-review.md"
+}

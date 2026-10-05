@@ -40,7 +40,13 @@ export class FileChooserComponent {
   isMovFile = false;
 
   @ViewChild('videoElem') videoElem!: ElementRef<HTMLVideoElement>;
+  @ViewChild('fileInputElem') fileInputElem?: ElementRef<HTMLInputElement>;
   @Output() file = new EventEmitter<File>();
+
+  /** Abre el selector nativo (usado por dropzones externos). */
+  openPicker() {
+    this.fileInputElem?.nativeElement.click();
+  }
 
   onFileChange(event: Event) {
     const files = (event.target as HTMLInputElement).files;
@@ -50,18 +56,23 @@ export class FileChooserComponent {
       this.file.emit(undefined);
       return;
     }
-    this.selectedFile = files[0];
-    this.selectedFileUrl = URL.createObjectURL(this.selectedFile);
+    this.selectFile(files[0]);
+  }
+
+  /** Selecciona un archivo recibido por input o drag & drop. */
+  selectFile(file: File) {
+    this.selectedFile = file;
+    this.selectedFileUrl = URL.createObjectURL(file);
 
     // Check if it's a .mov file
-    const fileExtension = files[0].name.split('.').pop()?.toLowerCase();
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
     this.isMovFile = fileExtension === 'mov';
 
-    this.file.emit(files[0]);
+    this.file.emit(file);
 
     if (!this.isMovFile) {
       setTimeout(() => {
-        this.videoElem.nativeElement.load();
+        this.videoElem?.nativeElement.load();
       }, 50);
     }
   }

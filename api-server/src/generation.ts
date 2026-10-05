@@ -526,24 +526,6 @@ export class GenerationHelper {
     return response.trim();
   }
 
-  static async generateChannelIntelligence(
-    compassContextJson: string,
-    categories: string[]
-  ): Promise<string> {
-    const categoriesText = categories.join(', ');
-    let prompt = COMPASS_INTELLIGENCE_PROMPTS.channelIntelligence;
-    prompt = prompt.replace('{{compassContextJson}}', compassContextJson);
-    prompt = prompt.replace('{{categoriesText}}', categoriesText);
-
-    AppLogger.info('Compass: generateChannelIntelligence starting');
-    let response = await VertexHelper.generate(prompt);
-    response = response.trim();
-    if (response.startsWith('```json')) response = response.substring(7);
-    else if (response.startsWith('```')) response = response.substring(3);
-    if (response.endsWith('```')) response = response.substring(0, response.length - 3);
-    return response.trim();
-  }
-
   static async generatePrioritization(compassContextJson: string): Promise<string> {
     let prompt = COMPASS_INTELLIGENCE_PROMPTS.prioritization;
     prompt = prompt.replace('{{compassContextJson}}', compassContextJson);

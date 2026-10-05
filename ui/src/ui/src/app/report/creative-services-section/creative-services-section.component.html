@@ -1,0 +1,99 @@
+<section class="v2-services-container" aria-labelledby="creative-services-title">
+  <header class="v2-services-head">
+    <div class="v2-services-head-left">
+      <div class="v2-services-num" aria-label="Sección 4 de 5">04 <span>/ 05</span></div>
+      <div class="v2-services-title-group">
+        <h2 id="creative-services-title">{{ section.data?.title || 'CREATIVE SERVICES' }}</h2>
+        <p>{{ section.data?.subtitle || 'De la oportunidad a la ejecución creativa.' }}</p>
+      </div>
+    </div>
+
+    <div class="v2-services-head-right">
+      <p>{{ section.data?.description || 'Formatos diseñados para activar las oportunidades identificadas.' }}</p>
+      <nav class="v2-services-nav" aria-label="Navegación de formatos">
+        <button type="button" class="v2-services-nav-btn" aria-label="Ver formatos anteriores" (click)="scrollFormats(-1)">
+          <mat-icon aria-hidden="true">chevron_left</mat-icon>
+        </button>
+        <button type="button" class="v2-services-nav-btn" aria-label="Ver formatos siguientes" (click)="scrollFormats(1)">
+          <mat-icon aria-hidden="true">chevron_right</mat-icon>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <div *ngIf="section.state === 'mock'" class="v2-source-badge" role="status">LOCAL MOCK DATA</div>
+
+  <div *ngIf="section.data as content; else sectionState">
+    <div #formatTrack class="v2-services-grid" tabindex="0" (keydown)="onTrackKeydown($event)" aria-label="Formatos de Creative Services">
+      <article
+        *ngFor="let format of content.formats"
+        class="v2-service-card"
+        [class.v2-service-card--selected]="selectedFormatId === format.id"
+        [class.v2-service-card--unavailable]="!format.available">
+        <div class="v2-service-img">
+          <ng-container *ngIf="!failedPreviewIds.has(format.id); else previewFallback">
+            <video
+              *ngIf="format.preview.type === 'video'; else imagePreview"
+              controls
+              preload="none"
+              [poster]="format.preview.posterUrl || ''"
+              [attr.aria-label]="format.preview.alt">
+              <source [src]="format.preview.url">
+            </video>
+            <ng-template #imagePreview>
+              <img
+                [src]="format.preview.url"
+                [alt]="format.preview.alt"
+                width="320"
+                height="200"
+                loading="lazy"
+                (error)="markPreviewAsFailed(format.id)">
+            </ng-template>
+          </ng-container>
+          <ng-template #previewFallback>
+            <div class="v2-preview-fallback" role="img" [attr.aria-label]="'Preview no disponible para ' + format.name">
+              <mat-icon aria-hidden="true">image_not_supported</mat-icon>
+              <span>Preview no disponible</span>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="v2-service-content">
+          <div class="v2-service-meta" *ngIf="format.relatedOpportunityType">
+            <span class="v2-adaptation-badge" [attr.data-type]="format.relatedOpportunityType">{{ format.relatedOpportunityType }}</span>
+          </div>
+          <h3 class="v2-service-title">{{ format.name }}</h3>
+          <p class="v2-service-desc">{{ format.description }}</p>
+          <div class="v2-service-bottom">
+            <div>
+              <div class="v2-service-ideal">Ideal para:</div>
+              <div class="v2-service-tags">
+                <span *ngFor="let tag of format.idealFor" class="v2-service-tag">{{ tag }}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="v2-service-btn"
+              [disabled]="!format.available"
+              [attr.aria-label]="'Seleccionar formato ' + format.name"
+              [attr.aria-pressed]="selectedFormatId === format.id"
+              (click)="selectFormat(format)">
+              <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <ng-template #sectionState>
+    <div class="v2-section-state" [attr.data-state]="section.state" role="status">
+      <mat-icon aria-hidden="true">{{ section.state === 'incomplete' ? 'warning_amber' : 'inventory_2' }}</mat-icon>
+      <div>
+        <strong>{{ section.state === 'incomplete' ? 'Información incompleta' : 'Creative Services pendiente' }}</strong>
+        <p *ngIf="section.state === 'incomplete'">La respuesta no contiene todos los campos necesarios para mostrar los formatos.</p>
+        <p *ngIf="section.state !== 'incomplete'">Los formatos estarán disponibles cuando el análisis entregue una salida válida.</p>
+      </div>
+    </div>
+  </ng-template>
+</section>

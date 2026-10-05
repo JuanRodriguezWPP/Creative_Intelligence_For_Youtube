@@ -76,7 +76,28 @@ router.get('/gcs-file', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/upload — Sube un archivo al bucket (base64)
+// POST /api/get-upload-url — Genera una Signed URL para subida directa del frontend al bucket
+// Esto replica el flujo original de Apps Script donde el navegador subía directo a GCS
+router.post('/get-upload-url', async (req: Request, res: Response) => {
+  try {
+    const { folder, filename, contentType } = req.body;
+    if (!folder || !filename) {
+      res.status(400).json({ error: 'Missing folder or filename' });
+      return;
+    }
+    const signedUrl = await StorageManager.generateSignedUploadUrl(
+      folder,
+      filename,
+      contentType || 'video/mp4'
+    );
+    res.json({ signedUrl, path: `${folder}/${filename}` });
+  } catch (error: any) {
+    console.error('Error in POST /api/get-upload-url:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/upload — Sube un archivo al bucket (base64) — mantenido como fallback
 router.post('/upload', async (req: Request, res: Response) => {
   try {
     const { base64Content, folder, filename, contentType } = req.body;

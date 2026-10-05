@@ -1,0 +1,8 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    "Jerarquía del layout [confirmed] — `.v2-tm-body` quedó dentro del header horizontal y comprime el rail y el detalle junto al selector; cerrar el header antes del body y añadir una regresión estructural o visual.",
+    "Navegación territorial inerte [confirmed] — las flechas anterior/siguiente no tienen acción, nombre accesible ni tipo explícito; implementar navegación etiquetada y estados disabled, o retirar esos controles."
+  ],
+  "reviewDoc": "/Applications/MAMP/htdocs/Production_Vigneair/vigenair_migration_node/.agents/tasks/territory-modal-fix/review.md"
+}

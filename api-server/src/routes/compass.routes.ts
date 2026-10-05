@@ -37,20 +37,6 @@ router.post('/compass/geo-intelligence', async (req: Request, res: Response) => 
   }
 });
 
-// POST /api/compass/channel-intelligence
-router.post('/compass/channel-intelligence', async (req: Request, res: Response) => {
-  try {
-    const { compassContextJson, categories } = req.body;
-    console.log('Starting generateChannelIntelligence');
-    const result = await GenerationHelper.generateChannelIntelligence(
-      compassContextJson, categories
-    );
-    res.json({ result });
-  } catch (error: any) {
-    console.error('Error in POST /api/compass/channel-intelligence:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
 
 // POST /api/compass/prioritization
 router.post('/compass/prioritization', async (req: Request, res: Response) => {

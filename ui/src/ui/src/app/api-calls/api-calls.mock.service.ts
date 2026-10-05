@@ -51,7 +51,7 @@ export class ApiCallsService implements ApiCalls {
     return data;
   }
   loadPreviousRun(folder: string): string[] {
-    return [`assets/${folder}`, `assets/${folder}/input.mp4`];
+    return [`/assets/${folder}`, `/assets/${folder}/input.mp4`];
   }
   uploadVideo(
     file: Blob,
@@ -92,15 +92,15 @@ export class ApiCallsService implements ApiCalls {
         "score": 5,
         "scenes": ["1", "2", "6"],
         "av_segments": [
-          { "av_segment_id": "1", "end_s": 17, "start_s": 0, "segment_screenshot_uri": "assets/horizontal.mp4--1234567890123--abcdef/av_segments_cuts/1.jpg" },
-          { "start_s": 17.04, "av_segment_id": "2", "segment_screenshot_uri": "assets/horizontal.mp4--1234567890123--abcdef/av_segments_cuts/2.jpg", "end_s": 26.4 },
-          { "av_segment_id": "6", "segment_screenshot_uri": "assets/horizontal.mp4--1234567890123--abcdef/av_segments_cuts/6.jpg", "end_s": 44.96, "start_s": 36.8 }
+          { "av_segment_id": "1", "end_s": 17, "start_s": 0, "segment_screenshot_uri": "/assets/horizontal.mp4--1234567890123--abcdef/av_segments_cuts/1.jpg" },
+          { "start_s": 17.04, "av_segment_id": "2", "segment_screenshot_uri": "/assets/horizontal.mp4--1234567890123--abcdef/av_segments_cuts/2.jpg", "end_s": 26.4 },
+          { "av_segment_id": "6", "segment_screenshot_uri": "/assets/horizontal.mp4--1234567890123--abcdef/av_segments_cuts/6.jpg", "end_s": 44.96, "start_s": 36.8 }
         ],
         "abcd": {
-          "attention": "Scene 1's series of fast video calls with different people immediately grabs attention.",
-          "branding": "The brand's name and logo appear in the last scene.",
-          "connection": "Scene 1 creates an immediate emotional connection with the audience.",
-          "direction": "Ends with a clear and compelling call to action."
+          "attention": ["Scene 1's series of fast video calls with different people immediately grabs attention."],
+          "branding": ["The brand's name and logo appear in the last scene."],
+          "connection": ["Scene 1 creates an immediate emotional connection with the audience."],
+          "direction": ["Ends with a clear and compelling call to action."]
         },
         "abcd_dimensiones": {
           "attention_score": 85,
@@ -500,16 +500,31 @@ export class ApiCallsService implements ApiCalls {
     return new Observable<string>(subscriber => {
       setTimeout(() => {
         subscriber.next(JSON.stringify({
-          pregunta: "¿Qué debería hacer ahora?",
-          oportunidades: [{
-            titulo: "Optimización de Inicio",
-            evidencia: "Baja retención inicial",
-            impacto: "Alto",
-            esfuerzo: "Medio",
-            prioridad: 1,
-            tipo: "Creative",
-            tiempo_referencia: "00:00 - 00:03",
-            recomendacion: "Añadir gancho visual"
+          testing_framework: [{
+            id: 'territory-cdmx-01',
+            recomendacion: 'Adaptar el mensaje para conectar con rutinas urbanas y estilos de vida activos.',
+            original: {
+              url: 'assets/formats/original_creative.png',
+              type: 'image',
+              alt: 'Creatividad original de Granedoin'
+            },
+            variant: {
+              url: 'assets/formats/variante_cdmx.png',
+              type: 'image',
+              alt: 'Adaptación territorial para Ciudad de México'
+            },
+            variant_label: 'Variante CDMX',
+            hipotesis: 'La adaptación territorial aumentará la relevancia del mensaje y la intención de consideración en CDMX.',
+            metricas_exito: [
+              'Brand Lift',
+              'Consideración de marca',
+              'VTR (Video Completion Rate)',
+              'Ad Recall',
+              'Intent to Purchase'
+            ],
+            territorio: 'Ciudad de México + Área Metropolitana',
+            adaptation_type: 'ADAPT',
+            status: 'pending_measurement'
           }]
         }));
         subscriber.complete();

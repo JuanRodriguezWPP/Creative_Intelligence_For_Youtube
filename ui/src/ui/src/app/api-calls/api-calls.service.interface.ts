@@ -94,10 +94,10 @@ export interface GenerateVariantsResponse {
   description: string;
   score: number;
   abcd: {
-    attention: AbcdInsightCard[];
-    branding: AbcdInsightCard[];
-    connection: AbcdInsightCard[];
-    direction: AbcdInsightCard[];
+    attention: AbcdInsightCard;
+    branding: AbcdInsightCard;
+    connection: AbcdInsightCard;
+    direction: AbcdInsightCard;
   };
   abcd_dimensiones?: {
     attention_score: number;
@@ -116,6 +116,17 @@ export interface GenerateVariantsResponse {
   insight_principal?: string;
   proyeccion_impacto?: string;
   formatos_wpp_sugeridos?: string[];
+  creative_signals?: string[];
+  elementos_visuales?: {
+    producto?: string;
+    branding?: string;
+    messaging?: string;
+  };
+  scenes_and_moments?: {
+    momentos_relevantes: string[];
+    estructura_del_video: string;
+    elementos_detectados: string[];
+  };
 }
 
 /** Response structure for YouTube Content Ideas. */
@@ -168,47 +179,90 @@ export interface YoutubeIdeasResponse {
 // COMPASS DATA — Mega JSON que orquesta el pipeline de análisis de 7 pasos
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface CompassGeoOportunidad {
-  zona: string;
-  audiencia: number;
-  coordenada_central: string;
-  estrategia: string;
-  prioridad: number;
-  insight_narrativo?: string;
+export interface V2GeoDemografia {
+  nombre: string;
+  clasificacion: string;
+  geo_keys_incluidas: number;
+  audiencia_estimada: string;
 }
 
-export interface CompassGeoInsight {
-  tipo: 'Do' | 'Keep' | 'Explore';
+export interface V2GeoCulturaLocal {
+  perfil_consumidor: string;
+  rutinas_intereses: string;
+  vinculo_con_marca: string;
+}
+
+export interface V2GeoOportunidadCreativa {
+  foco_del_problema: string;
+  diagnostico_video_original: string;
+  solucion_hiperlocal: string;
+  formato_sugerido: string;
+  elementos_de_adaptacion: string[];
+}
+
+export interface V2GeoCaracteristica {
+  icono: string;
   titulo: string;
   descripcion: string;
 }
 
-export interface CompassCategoriaContexto {
-  categoria?: string; // Legacy support
-  dimension?: string;
-  audiencia_especifica?: string;
-  afinidad: string;
-  insights: string[];
-  evidencias: string[];
-  recomendaciones: string[];
-  ideacion_adaptacion?: string[];
+export interface V2GeoIndicador {
+  etiqueta: string;
+  nivel: number;
 }
 
-export interface CompassOportunidad {
+export interface V2GeoEvidencia {
+  descripcion: string;
+  timestamp_s: number;
+  tags: string[];
+}
+
+export interface V2GeoOportunidad {
+  id: string;
   titulo: string;
-  evidencia: string;
-  impacto: 'Alto' | 'Medio' | 'Bajo';
-  esfuerzo: 'Alto' | 'Medio' | 'Bajo';
-  prioridad: number;
+  descripcion: string;
+  relevancia: string;
+  hallazgo: string;
+  evidencia: V2GeoEvidencia;
+  insight: string;
+  oportunidad: string;
+}
+
+export interface V2GeoAdaptacion {
+  oportunidad_id: string;
+  tipo: 'KEEP' | 'EXPLORE' | 'ADAPT';
+  titulo: string;
+  descripcion: string;
+  formato: string;
+  ideal_para: string[];
+}
+
+export interface V2Territory {
+  territorio_id?: string;
+  resumen?: string;
+  caracteristicas_clave?: V2GeoCaracteristica[];
+  indicadores_cualitativos?: V2GeoIndicador[];
+  temas_mapa?: string[];
+  oportunidades?: V2GeoOportunidad[];
+  adaptaciones?: V2GeoAdaptacion[];
+  
+  // Backwards compatibility
+  demografia?: V2GeoDemografia;
+  cultura_local?: V2GeoCulturaLocal;
+  oportunidades_creativas?: V2GeoOportunidadCreativa[];
+}
+
+export interface V2GeoIntelligence {
+  resumen_ejecutivo: string;
+  datos_clave?: Array<{icono: string; valor: string; titulo: string; subtitulo: string}>;
+  territorios: V2Territory[];
+}
+
+export interface V2TestingFrameworkItem {
   recomendacion: string;
-  tipo: 'Creative' | 'Geo' | 'Categoría';
-  tiempo_referencia?: string;
-  kpi_impactado?: string;
-  metrica_medicion?: string;
-  do?: string;
-  keep?: string;
-  explore?: string;
-  formato_sugerido?: string;
+  variante: string;
+  hipotesis: string;
+  metricas_exito: string[];
 }
 
 export interface CompassAbcdDimensiones {
@@ -249,10 +303,10 @@ export interface CompassData {
     score_label: string;
     abcd_dimensiones?: CompassAbcdDimensiones;
     abcd: {
-      attention: AbcdInsightCard[];
-      branding: AbcdInsightCard[];
-      connection: AbcdInsightCard[];
-      direction: AbcdInsightCard[];
+      attention: AbcdInsightCard;
+      branding: AbcdInsightCard;
+      connection: AbcdInsightCard;
+      direction: AbcdInsightCard;
       [key: string]: any;
     };
     strengths: string[];
@@ -261,19 +315,21 @@ export interface CompassData {
     descripcion: string;
     insight_principal?: string;
     proyeccion_impacto?: string;
+    creative_signals?: string[];
+    elementos_visuales?: {
+      producto?: string;
+      branding?: string;
+      messaging?: string;
+    };
+    scenes_and_moments?: {
+      momentos_relevantes: string[];
+      estructura_del_video: string;
+      elementos_detectados: string[];
+    };
   } | null;
-  geo_intelligence: {
-    macro_estrategias: CompassGeoOportunidad[];
-    micro_oportunidades: CompassGeoOportunidad[];
-    insights_narrativos: CompassGeoInsight[];
-  } | null;
-  channel_intelligence: {
-    pregunta: string;
-    contextos: CompassCategoriaContexto[];
-  } | null;
-  prioridades: {
-    pregunta: string;
-    oportunidades: CompassOportunidad[];
+  geo_intelligence: V2GeoIntelligence | null;
+  testing_framework: {
+    testing_framework: V2TestingFrameworkItem[];
   } | null;
 }
 
@@ -317,10 +373,10 @@ export interface RenderQueueVariant {
   description: string;
   score: number;
   abcd: {
-    attention: AbcdInsightCard[];
-    branding: AbcdInsightCard[];
-    connection: AbcdInsightCard[];
-    direction: AbcdInsightCard[];
+    attention: AbcdInsightCard;
+    branding: AbcdInsightCard;
+    connection: AbcdInsightCard;
+    direction: AbcdInsightCard;
   };
   render_settings: RenderSettings;
   duration: string;

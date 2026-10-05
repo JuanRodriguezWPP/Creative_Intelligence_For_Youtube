@@ -1,0 +1,5 @@
+
+/* Fix for Material Icons not displaying correctly */
+.mat-icon {
+  font-family: 'Material Icons' !important;
+}

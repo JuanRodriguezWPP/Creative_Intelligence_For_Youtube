@@ -22,6 +22,7 @@ limitations under the License.
   src: url('https://cdn.nexus-creative-solutions.com/LATAM/applications/Compass-Analysis/Font/Webfonts/WPP-Medium.woff2') format('woff2');
   font-weight: 900;
   font-style: normal;
+  font-display: swap;
 }
 
 /* H2 */
@@ -30,6 +31,7 @@ limitations under the License.
   src: url('https://cdn.nexus-creative-solutions.com/LATAM/applications/Compass-Analysis/Font/Webfonts/WPP-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
+  font-display: swap;
 }
 
 /* H3 */
@@ -38,6 +40,7 @@ limitations under the License.
   src: url('https://cdn.nexus-creative-solutions.com/LATAM/applications/Compass-Analysis/Font/Webfonts/WPP-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -45,9 +48,11 @@ limitations under the License.
   src: url('https://cdn.nexus-creative-solutions.com/LATAM/applications/Compass-Analysis/Font/Webfonts/WPP-Thin.woff2') format('woff2');
   font-weight: 100;
   font-style: normal;
+  font-display: swap;
 }
 
 :root {
+  /* V1 Legacy Colors (Keep for backward compatibility) */
   --wpp-azul: #000050;
   --wpp-verde: #aef366;
   --wpp-verde-claro: #effde0;
@@ -59,6 +64,31 @@ limitations under the License.
   --wpp-verde-oscuro: #1b5e20;
   --wpp-text-title: #202124;
   --wpp-text-desc: #000000;
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /* V2 GLOBAL DESIGN SYSTEM TOKENS                                  */
+  /* ═══════════════════════════════════════════════════════════════ */
+  
+  /* Brand Accent */
+  --v2-lime: #B6FF00;
+  --v2-lime-hover: #8ED600;
+  
+  /* Light Theme (Report) */
+  --v2-bg-main: #F7F7F3;
+  --v2-bg-surface: #F0F0EC;
+  --v2-text-main: #111111;
+  --v2-text-secondary: #5F5F5F;
+  --v2-text-tertiary: #8A8A8A;
+  --v2-border-light: #E2E2DE;
+  
+  /* Dark Theme (Territory Detail) */
+  --v2-dark-bg-main: #080A09;
+  --v2-dark-bg-card: #111513;
+  --v2-dark-bg-elevated: #171B19;
+  --v2-dark-text-main: #F5F5F2;
+  --v2-dark-text-secondary: #A7AAA5;
+  --v2-dark-border: #2A302D;
+  --v2-lime-glow: rgba(182, 255, 0, 0.15);
 }
 
 html,
@@ -68,33 +98,60 @@ body {
 
 body {
   margin: 0;
-  font-family: 'WPP Thin', sans-serif;
-  background-color: var(--wpp-gris-claro);
-  color: var(--wpp-text-desc);
-  font-size: 14px;
-  font-weight: 100;
+  font-family: 'WPP Regular', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--v2-bg-main);
+  color: var(--v2-text-main);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Escala de elementos visuales de texto */
+/* Escala de elementos visuales de texto (V2) */
 
-h1, h2, h3, .ca-title {
-  font-family: 'WPP Medium', sans-serif;
-  font-size: 24px;
-  font-weight: 500;
-  color: var(--wpp-text-title);
+h1, .v2-h1 {
+  font-family: 'WPP Black', 'Inter', sans-serif;
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--v2-text-main);
+  line-height: 1;
   margin: 0;
 }
 
-h4, .ca-subtitle {
+h2, .v2-h2 {
+  font-family: 'WPP Black', 'Inter', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--v2-text-main);
+  line-height: 1.1;
+  margin: 0;
+}
+
+h3, .v2-h3 {
+  font-family: 'WPP Medium', 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--v2-text-main);
+  margin: 0;
+}
+
+h4, .v2-h4, .ca-title {
+  font-family: 'WPP Medium', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--v2-text-main);
+  margin: 0;
+}
+
+.ca-subtitle {
   font-family: 'WPP Regular', sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 400;
-  color: var(--wpp-text-desc);
+  color: var(--v2-text-secondary);
   margin: 0;
 }
 
 p, span {
-  font-family: 'WPP Thin', sans-serif;
+  font-family: 'WPP Regular', 'Inter', sans-serif;
 }
 
 input {
@@ -335,4 +392,90 @@ textarea.mat-mdc-input-element {
 .main-stepper .mat-horizontal-stepper-header,
 .main-stepper .mat-step-header {
   display: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* V2 UI KIT COMPONENTS (Global)                                   */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--v2-lime) !important;
+  color: #111111 !important;
+  border: none !important;
+  border-radius: 999px !important; /* Pill shape */
+  height: 48px;
+  padding: 0 32px;
+  font-family: 'WPP Medium', 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(182, 255, 0, 0.2);
+}
+.btn-primary:hover {
+  background-color: var(--v2-lime-hover) !important;
+  box-shadow: 0 4px 12px rgba(182, 255, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: transparent !important;
+  color: var(--v2-text-main) !important;
+  border: 1px solid var(--v2-text-secondary) !important;
+  border-radius: 999px !important;
+  height: 48px;
+  padding: 0 32px;
+  font-family: 'WPP Medium', 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-secondary:hover {
+  border-color: var(--v2-text-main) !important;
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+.btn-ghost {
+  background-color: transparent !important;
+  color: var(--v2-text-main) !important;
+  border: none !important;
+  padding: 8px 16px;
+  font-family: 'WPP Medium', 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-ghost:hover {
+  color: var(--v2-text-secondary) !important;
+}
+
+/* Cards */
+.card-light {
+  background-color: #FFFFFF;
+  border: 1px solid var(--v2-border-light);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: none;
+}
+
+.card-dark {
+  background-color: var(--v2-dark-bg-card);
+  border: 1px solid var(--v2-dark-border);
+  border-radius: 24px;
+  padding: 32px;
+  color: var(--v2-dark-text-main);
 }

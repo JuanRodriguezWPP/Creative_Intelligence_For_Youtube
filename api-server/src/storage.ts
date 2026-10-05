@@ -9,6 +9,30 @@ const bucket = storage.bucket(CONFIG.cloudStorage.bucket);
 
 export class StorageManager {
   /**
+   * Genera una Signed URL para subida directa desde el frontend.
+   * Esto evita el paso por base64 y el doble salto de red (Browser→Backend→GCS),
+   * replicando el flujo original de Apps Script (Browser→GCS directo).
+   * La URL es válida por 15 minutos.
+   */
+  static async generateSignedUploadUrl(
+    folder: string,
+    filename: string,
+    contentType: string
+  ): Promise<string> {
+    const fullPath = `${folder}/${filename}`;
+    const file = bucket.file(fullPath);
+
+    const [signedUrl] = await file.getSignedUrl({
+      version: 'v4',
+      action: 'write',
+      expires: Date.now() + 15 * 60 * 1000, // 15 minutos
+      contentType: contentType,
+    });
+
+    console.log(`Generated signed upload URL for ${fullPath}`);
+    return signedUrl;
+  }
+  /**
    * Descarga un archivo del bucket.
    * Si asString es true, devuelve el texto. Si es false, devuelve un Buffer (bytes).
    */
