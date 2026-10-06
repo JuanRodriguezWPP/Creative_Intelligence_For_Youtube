@@ -141,74 +141,6 @@
   line-height: 40px;
   text-align: center;
 }
-.ca-progress-header h2 {
-  margin: 0 0 8px;
-  color: #111111;
-  font-family: 'WPP Black', Inter, sans-serif;
-  font-size: clamp(36px, 3vw, 42px);
-  font-weight: 700;
-  line-height: 1.08;
-  letter-spacing: -0.03em;
-}
-.ca-progress-header p { margin: 0; color: #5F5F5F; font-size: 16px; line-height: 1.5; }
-.ca-progress-tracker,
-.ca-progress-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E2DE;
-  border-radius: 22px;
-  box-shadow: 0 8px 24px rgba(17, 17, 17, 0.035);
-}
-.ca-progress-tracker { padding: 32px; }
-.ca-progress-step { gap: 16px; padding-bottom: 32px; }
-.ca-progress-icon .mat-icon { color: #8A8A8A; background: #FFFFFF; }
-.ca-progress-step-completed .ca-progress-icon .mat-icon,
-.ca-progress-step-active .ca-progress-icon .mat-icon { color: #8ED600; }
-.ca-progress-line { background: #E2E2DE; }
-.ca-progress-step-completed .ca-progress-line { background: #8ED600; }
-.ca-progress-step-title { color: #111111; font-size: 18px; font-weight: 600; }
-.ca-progress-step-desc { color: #5F5F5F; font-size: 15px; line-height: 1.5; }
-.ca-progress-status { color: #8A8A8A; font-size: 13px; }
-.ca-progress-step-completed .ca-progress-status,
-.ca-progress-step-active .ca-progress-status { color: #5F5F5F; }
-.ca-progress-bar { height: 6px; background: #F0F0EC; }
-.ca-progress-bar-fill { background: #B6FF00; }
-.ca-progress-bar-status,
-.ca-progress-bar-text { color: #5F5F5F; font-size: 13px; }
-.ca-progress-banner {
-  gap: 16px;
-  margin-top: 32px;
-  padding: 24px;
-  background: #FFFFFF;
-  border: 1px solid #E2E2DE;
-  border-radius: 22px;
-  box-shadow: none;
-}
-.ca-progress-banner-icon { color: #111111; background: rgba(182, 255, 0, 0.15); }
-.ca-progress-banner-title { color: #111111; font-size: 18px; font-weight: 600; }
-.ca-progress-banner-desc { color: #5F5F5F; font-size: 15px; line-height: 1.5; }
-.ca-progress-banner-button-fake {
-  min-height: 44px;
-  color: #5F5F5F;
-  background: #F0F0EC;
-  border: 1px solid #E2E2DE;
-  border-radius: 999px;
-  font-size: 13px;
-}
-.ca-progress-card { overflow: hidden; }
-.ca-progress-video-thumb { border-radius: 22px 22px 0 0 !important; }
-.ca-progress-card-title { color: #111111; font-size: 20px; font-weight: 600; }
-.ca-progress-card-status { color: #5F5F5F; font-size: 14px; }
-.ca-progress-card-status .mat-icon { color: #8ED600; }
-.ca-progress-video-details,
-.ca-progress-context-section,
-.ca-progress-intelligence-section { border-color: #E2E2DE; }
-.ca-progress-detail-lbl,
-.ca-progress-context-val { color: #5F5F5F; font-size: 13px; }
-.ca-progress-detail-val,
-.ca-progress-context-lbl,
-.ca-progress-context-title { color: #111111; font-size: 15px; }
-.ca-progress-pill { color: #111111; background: rgba(182, 255, 0, 0.15); border-radius: 999px; }
-.ca-progress-pill.ca-progress-pill-primary { color: #111111; background: #B6FF00; }
 .ci-analysis-results {
   width: min(1440px, 100%);
   margin: 0 auto;
@@ -367,7 +299,6 @@
   .ca-progress-layout,
   .ci-analysis-results,
   .v2-report { padding: 40px 24px 64px; }
-  .ca-progress-header h2,
   .v2-section-title { font-size: 34px; }
   .v2-hero { grid-template-columns: 1fr; margin-bottom: 64px; }
   .v2-hero-title { font-size: 48px; }

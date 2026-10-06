@@ -60,48 +60,77 @@ limitations under the License.
           <!-- File chooser permanece montado: el pipeline de subida lo usa vía ViewChild -->
           <file-chooser class="ciw-file-chooser-host" (file)="onFileSelected($event)"></file-chooser>
 
-          <!-- ── TOP BAR REMOVED AS REQUESTED ─────────────── -->
           @if (wizardStep === 0) {
-          <!-- ── LANDING ─────────────────────────────────────────────── -->
+          <!-- ── LANDING (PORTADA INICIAL) ───────────────────────────── -->
           <section class="ciw-landing" aria-labelledby="ciw-landing-title">
-            <span class="ciw-kicker">CREATIVE INTELLIGENCE</span>
-            <h1 id="ciw-landing-title" class="ciw-landing-title">Convierte tu creatividad en inteligencia accionable.</h1>
-            <p class="ciw-landing-desc">Configura el contexto de tu campaña, incorpora información territorial y carga
-              tu creatividad para generar insights y oportunidades de adaptación para Advanced TV - YouTube.</p>
-            <button type="button" class="ciw-btn ciw-btn--lime ciw-btn--lg" (click)="startWizard()">
-              Iniciar análisis <mat-icon aria-hidden="true">arrow_forward</mat-icon>
-            </button>
+            <div class="ciw-landing-content">
+              <!-- Nivel 1: WPP Media Solutions (fuera del contenedor) -->
+              <div class="ciw-brand-wpp-lead">
+                <img src="assets/logos/WPPMediaSolution_Logo.svg" alt="WPP Media Solutions" class="ciw-logo-wpp-lead" />
+              </div>
+
+              <!-- Nivel 2: Producto / Solución (contenedor amplio y espacioso) -->
+              <div class="ciw-solution-badge">
+                <div class="ciw-solution-logo-wrap">
+                  <img src="assets/logos/CreativeIntelligence_Logo.svg" alt="Creative Intelligence" class="ciw-logo-ci-lead" />
+                </div>
+                <span class="ciw-solution-divider" aria-hidden="true"></span>
+                <div class="ciw-solution-context">
+                  <span class="ciw-solution-text">Advanced TV · <strong>YouTube</strong></span>
+                </div>
+              </div>
+
+              <!-- Headline (sin br manual, wrapping natural) -->
+              <h1 id="ciw-landing-title" class="ciw-landing-title">Entiende tu creatividad. Encuentra nuevas oportunidades.</h1>
+
+              <!-- Descripción (nuevo texto aprobado, sin br manual) -->
+              <p class="ciw-landing-desc">Configura el contexto de tu campaña, incorpora información territorial y carga tu creatividad. Creative Intelligence analiza el asset, interpreta su contexto y encuentra oportunidades para personalizarlo y amplificar su impacto en Advanced TV · YouTube.</p>
+
+              <!-- CTA (Signature Lime #AEF366) -->
+              <button type="button" class="ciw-btn ciw-btn--lime ciw-btn--lg ciw-landing-cta" (click)="startWizard()">
+                <span>Iniciar análisis</span>
+                <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+              </button>
+            </div>
           </section>
           } @else {
+          <!-- ── BRANDING HEADER CENTRADO PARA STEPS 01-05 ─────────── -->
+          <header class="ciw-header" aria-label="Creative Intelligence">
+            <div class="ciw-header-inner">
+              <div class="ciw-brand-wpp-lead">
+                <img src="assets/logos/WPPMediaSolution_Logo.svg" alt="WPP Media Solutions" class="ciw-logo-wpp-lead" />
+              </div>
+              <div class="ciw-solution-badge">
+                <div class="ciw-solution-logo-wrap">
+                  <img src="assets/logos/CreativeIntelligence_Logo.svg" alt="Creative Intelligence" class="ciw-logo-ci-lead" />
+                </div>
+                <span class="ciw-solution-divider" aria-hidden="true"></span>
+                <div class="ciw-solution-context">
+                  <span class="ciw-solution-text">Advanced TV · <strong>YouTube</strong></span>
+                </div>
+              </div>
+            </div>
+          </header>
+
           <div class="ciw-container">
-            <!-- ── PROGRESS ──────────────────────────────────────────── -->
+            <!-- ── PROGRESS (LÍNEA CONTINUA EDITORIAL SIN CÍRCULOS) ── -->
             <nav class="ciw-progress" aria-label="Progreso de configuración">
-              <ol class="ciw-progress-track">
-                @for (n of wizardProgressNodes; track n) {
-                <li class="ciw-progress-node" [class.is-done]="n < wizardStep || wizardStep === 5"
-                  [class.is-current]="n === wizardStep && wizardStep !== 5"
-                  [attr.aria-current]="n === wizardStep ? 'step' : null">
-                  <span class="ciw-progress-dot">
-                    @if (n < wizardStep || wizardStep === 5) {
-                    <mat-icon aria-hidden="true">check</mat-icon>
-                    }
-                  </span>
-                  <span class="cdk-visually-hidden">Paso {{ n }}{{ n < wizardStep ? ' completado' : '' }}</span>
-                </li>
-                }
-              </ol>
+              <div class="ciw-progress-track" role="progressbar" [attr.aria-valuenow]="wizardStep" aria-valuemin="1" aria-valuemax="4">
+                <div class="ciw-progress-fill" [style.width.%]="(wizardStep >= 4 ? 4 : wizardStep) * 25"></div>
+              </div>
               <span class="ciw-progress-count">{{ wizardStepLabel }}</span>
             </nav>
 
             <!-- ═══ 01 · INFORMACIÓN DEL CASO ═══ -->
             @if (wizardStep === 1) {
             <section class="ciw-step" aria-labelledby="ciw-step-1-title">
-              <div class="ciw-step-head ciw-step-head--stacked">
-                <span class="ciw-step-num">01</span>
-                <div>
-                  <h2 id="ciw-step-1-title">Información del caso</h2>
-                  <p>Registra la información general del proyecto.</p>
-                </div>
+              <div class="ciw-step-head">
+                <h2 id="ciw-step-1-title" class="ciw-step-title">
+                  <span class="ciw-step-tag">01</span>
+                  <span class="ciw-step-dot-sep">·</span>
+                  <span class="ciw-step-name">Información del caso</span>
+                </h2>
+                <p class="ciw-step-desc">Registra la información general del proyecto.</p>
               </div>
 
               <div class="ciw-card">
@@ -161,7 +190,14 @@ limitations under the License.
             <!-- ═══ 02 · CONTEXTO DE CAMPAÑA Y MARCA ═══ -->
             @if (wizardStep === 2) {
             <section class="ciw-step" aria-labelledby="ciw-step-2-title">
-
+              <div class="ciw-step-head">
+                <h2 id="ciw-step-2-title" class="ciw-step-title">
+                  <span class="ciw-step-tag">02</span>
+                  <span class="ciw-step-dot-sep">·</span>
+                  <span class="ciw-step-name">Contexto de campaña y marca</span>
+                </h2>
+                <p class="ciw-step-desc">Define los objetivos estratégicos, la audiencia y el tono de comunicación.</p>
+              </div>
 
               <div class="ciw-card ciw-card--wide">
                 <h3 class="ciw-card-title">Objetivos y audiencia</h3>
@@ -246,18 +282,24 @@ limitations under the License.
             <!-- ═══ 03 · INPUTS DE INTELIGENCIA ═══ -->
             @if (wizardStep === 3) {
             <section class="ciw-step" aria-labelledby="ciw-step-3-title">
-
+              <div class="ciw-step-head">
+                <h2 id="ciw-step-3-title" class="ciw-step-title">
+                  <span class="ciw-step-tag">03</span>
+                  <span class="ciw-step-dot-sep">·</span>
+                  <span class="ciw-step-name">Geo Intelligence</span>
+                </h2>
+                <p class="ciw-step-desc">Carga un archivo GeoKeys (CSV) para incorporar contexto geográfico y territorial al análisis.</p>
+              </div>
 
               <div class="ciw-card">
                 <div class="ciw-geo-card">
                   <div class="ciw-geo-head">
-                    <span class="ciw-icon-circle"><mat-icon aria-hidden="true">location_on</mat-icon></span>
-                    <div>
-                      <h3>Geo Intelligence</h3>
-                      <p class="ciw-geo-sub">GeoKeys — Geolocalizaciones CTV</p>
-                      <p class="ciw-muted">Carga un archivo GeoKeys (CSV) para incorporar contexto geográfico y
-                        territorial al análisis.</p>
-                    </div>
+                    <span class="ciw-geo-badge-icon">
+                      <mat-icon aria-hidden="true">location_on</mat-icon>
+                    </span>
+                    <h3>Geo Intelligence</h3>
+                    <p class="ciw-geo-sub">GeoKeys — Geolocalizaciones CTV</p>
+                    <p class="ciw-geo-desc">Carga un archivo GeoKeys (CSV) para incorporar contexto geográfico y territorial al análisis.</p>
                   </div>
 
                   <input #geoCsvInput id="geo-csv-input" class="ciw-hidden-input" type="file" accept=".csv,.txt"
@@ -327,11 +369,12 @@ limitations under the License.
             @if (wizardStep === 4) {
             <section class="ciw-step" aria-labelledby="ciw-step-4-title">
               <div class="ciw-step-head">
-                <span class="ciw-step-num">04</span>
-                <div>
-                  <h2 id="ciw-step-4-title">Asset de video</h2>
-                  <p>Carga la creatividad que será procesada.</p>
-                </div>
+                <h2 id="ciw-step-4-title" class="ciw-step-title">
+                  <span class="ciw-step-tag">04</span>
+                  <span class="ciw-step-dot-sep">·</span>
+                  <span class="ciw-step-name">Asset de video</span>
+                </h2>
+                <p class="ciw-step-desc">Carga la creatividad que será procesada.</p>
               </div>
 
               <div class="ciw-card ciw-card--wide">
@@ -406,15 +449,16 @@ limitations under the License.
             </section>
             }
 
-            <!-- ═══ 05 · TODO LISTO ═══ -->
+            <!-- ═══ 05 · TODO LISTO / REVIEW ═══ -->
             @if (wizardStep === 5) {
             <section class="ciw-step" aria-labelledby="ciw-step-5-title">
               <div class="ciw-step-head">
-                <span class="ciw-step-num ciw-step-num--check"><mat-icon aria-hidden="true">check</mat-icon></span>
-                <div>
-                  <h2 id="ciw-step-5-title">Todo listo.</h2>
-                  <p>Revisa la configuración antes de iniciar el análisis.</p>
-                </div>
+                <h2 id="ciw-step-5-title" class="ciw-step-title">
+                  <span class="ciw-step-tag">05</span>
+                  <span class="ciw-step-dot-sep">·</span>
+                  <span class="ciw-step-name">Review</span>
+                </h2>
+                <p class="ciw-step-desc">Revisa la configuración antes de iniciar el análisis.</p>
               </div>
 
               <div class="ciw-card ciw-card--wide ciw-review">
@@ -521,12 +565,17 @@ limitations under the License.
           <!-- Left Column -->
           <div class="ca-progress-left">
             <div class="ca-progress-header">
-              <mat-icon class="ca-progress-main-icon">gps_fixed</mat-icon>
-              <div>
-                <h2>Análisis en progreso</h2>
-                <p>Creative Intelligence está analizando tu video y el contexto de campaña<br>para identificar
-                  oportunidades
-                  accionables.</p>
+              <div class="ca-progress-header-icon-wrap" [class.ca-header-completed]="isAnalysisComplete">
+                <mat-icon class="ca-progress-main-icon">{{ isAnalysisComplete ? 'check_circle' : 'auto_fix_high' }}</mat-icon>
+              </div>
+              <div class="ca-progress-header-text">
+                <h2>{{ isAnalysisComplete ? 'Tu análisis está listo' : 'Análisis en progreso' }}</h2>
+                <p *ngIf="!isAnalysisComplete">
+                  Creative Intelligence está analizando tu video y el contexto de campaña para identificar oportunidades accionables.
+                </p>
+                <p *ngIf="isAnalysisComplete">
+                  Creative Intelligence ha terminado de analizar tu creatividad y su contexto. Explora los hallazgos y oportunidades identificados.
+                </p>
               </div>
             </div>
 
@@ -534,7 +583,7 @@ limitations under the License.
               <!-- Step 1: Video cargado -->
               <div class="ca-progress-step" [class.ca-progress-step-completed]="currentProgressStep >= 1">
                 <div class="ca-progress-icon">
-                  <mat-icon *ngIf="currentProgressStep > 1">check_circle</mat-icon>
+                  <mat-icon *ngIf="currentProgressStep > 1">check</mat-icon>
                   <mat-icon *ngIf="currentProgressStep === 1">adjust</mat-icon>
                   <div class="ca-progress-line"></div>
                 </div>
@@ -554,7 +603,7 @@ limitations under the License.
                 [class.ca-progress-step-active]="currentProgressStep === 2"
                 [class.ca-progress-step-pending]="currentProgressStep < 2">
                 <div class="ca-progress-icon">
-                  <mat-icon *ngIf="currentProgressStep > 2">check_circle</mat-icon>
+                  <mat-icon *ngIf="currentProgressStep > 2">check</mat-icon>
                   <mat-icon *ngIf="currentProgressStep === 2">adjust</mat-icon>
                   <mat-icon *ngIf="currentProgressStep < 2">radio_button_unchecked</mat-icon>
                   <div class="ca-progress-line"></div>
@@ -584,7 +633,7 @@ limitations under the License.
                 [class.ca-progress-step-active]="currentProgressStep === 3"
                 [class.ca-progress-step-pending]="currentProgressStep < 3">
                 <div class="ca-progress-icon">
-                  <mat-icon *ngIf="currentProgressStep > 3">check_circle</mat-icon>
+                  <mat-icon *ngIf="currentProgressStep > 3">check</mat-icon>
                   <mat-icon *ngIf="currentProgressStep === 3">adjust</mat-icon>
                   <mat-icon *ngIf="currentProgressStep < 3">radio_button_unchecked</mat-icon>
                   <div class="ca-progress-line"></div>
@@ -615,7 +664,7 @@ limitations under the License.
                 [class.ca-progress-step-active]="currentProgressStep === 4"
                 [class.ca-progress-step-pending]="currentProgressStep < 4">
                 <div class="ca-progress-icon">
-                  <mat-icon *ngIf="currentProgressStep > 4">check_circle</mat-icon>
+                  <mat-icon *ngIf="currentProgressStep > 4">check</mat-icon>
                   <mat-icon *ngIf="currentProgressStep === 4">adjust</mat-icon>
                   <mat-icon *ngIf="currentProgressStep < 4">radio_button_unchecked</mat-icon>
                   <div class="ca-progress-line"></div>
@@ -646,7 +695,7 @@ limitations under the License.
                 [class.ca-progress-step-active]="currentProgressStep === 5"
                 [class.ca-progress-step-pending]="currentProgressStep < 5">
                 <div class="ca-progress-icon">
-                  <mat-icon *ngIf="currentProgressStep > 5">check_circle</mat-icon>
+                  <mat-icon *ngIf="currentProgressStep > 5">check</mat-icon>
                   <mat-icon *ngIf="currentProgressStep === 5">adjust</mat-icon>
                   <mat-icon *ngIf="currentProgressStep < 5">radio_button_unchecked</mat-icon>
                   <div class="ca-progress-line"></div>
@@ -676,7 +725,7 @@ limitations under the License.
                 [class.ca-progress-step-active]="currentProgressStep === 6"
                 [class.ca-progress-step-pending]="currentProgressStep < 6">
                 <div class="ca-progress-icon">
-                  <mat-icon *ngIf="currentProgressStep > 6">check_circle</mat-icon>
+                  <mat-icon *ngIf="currentProgressStep > 6">check</mat-icon>
                   <mat-icon *ngIf="currentProgressStep === 6">adjust</mat-icon>
                   <mat-icon *ngIf="currentProgressStep < 6">radio_button_unchecked</mat-icon>
                   <div class="ca-progress-line"></div>
@@ -706,12 +755,12 @@ limitations under the License.
                 [class.ca-progress-step-active]="currentProgressStep === 7"
                 [class.ca-progress-step-pending]="currentProgressStep < 7">
                 <div class="ca-progress-icon">
-                  <mat-icon *ngIf="currentProgressStep > 7">check_circle</mat-icon>
+                  <mat-icon *ngIf="currentProgressStep > 7">check</mat-icon>
                   <mat-icon *ngIf="currentProgressStep === 7">adjust</mat-icon>
                   <mat-icon *ngIf="currentProgressStep < 7">radio_button_unchecked</mat-icon>
                 </div>
                 <div class="ca-progress-content">
-                  <div class="ca-progress-step-title">Generando Editar Reporte</div>
+                  <div class="ca-progress-step-title">Generando Reporte Estratégico</div>
                   <div class="ca-progress-step-desc">Compilando hallazgos en un documento accionable y visual.</div>
 
                   <div class="ca-progress-bar-wrap" *ngIf="currentProgressStep === 7">
@@ -732,26 +781,28 @@ limitations under the License.
             </div>
 
             <!-- Footer indicator -->
-            <div class="ca-progress-banner">
+            <div class="ca-progress-banner" [class.ca-banner-completed]="isAnalysisComplete">
               <div class="ca-progress-banner-icon">
-                <mat-icon>auto_awesome</mat-icon>
+                <mat-icon>{{ isAnalysisComplete ? 'check_circle' : 'auto_awesome' }}</mat-icon>
               </div>
               <div class="ca-progress-banner-content">
-                <div class="ca-progress-banner-title">Estamos trabajando en tu análisis</div>
-                <div class="ca-progress-banner-desc">Creative Intelligence está procesando el video y el contexto de
-                  campaña para
-                  identificar oportunidades accionables.</div>
+                <div class="ca-progress-banner-title">
+                  {{ isAnalysisComplete ? 'Análisis finalizado con éxito' : 'Estamos trabajando en tu análisis' }}
+                </div>
+                <div class="ca-progress-banner-desc">
+                  {{ isAnalysisComplete ? 'Se han generado los hallazgos y recomendaciones basados en el estándar ABCD y el contexto ingresado.' : 'Creative Intelligence está procesando el video y el contexto de campaña para identificar oportunidades accionables.' }}
+                </div>
               </div>
               <div class="ca-progress-banner-right">
                 <div *ngIf="!isAnalysisComplete" class="ca-progress-banner-button-fake">
-                  <mat-icon>schedule</mat-icon> Insights estará disponible al finalizar
+                  <mat-icon>schedule</mat-icon> Reporte disponible al finalizar
                 </div>
-                <button *ngIf="isAnalysisComplete" type="button" class="ca-btn-primary" style="margin-bottom: 8px;"
-                  (click)="goToReport()">
-                  Ver Insights <mat-icon>arrow_forward</mat-icon>
+                <button *ngIf="isAnalysisComplete" type="button" class="ca-btn-report-ready" (click)="goToReport()">
+                  Ver reporte <mat-icon>arrow_forward</mat-icon>
                 </button>
-                <div class="ca-progress-banner-subtext">El documento se habilitará automáticamente cuando el análisis
-                  esté completo.</div>
+                <div class="ca-progress-banner-subtext">
+                  {{ isAnalysisComplete ? 'Haz clic para explorar el reporte completo.' : 'El documento se habilitará automáticamente cuando el análisis esté completo.' }}
+                </div>
               </div>
             </div>
 
@@ -760,87 +811,78 @@ limitations under the License.
           <!-- Right Column -->
           <div class="ca-progress-right">
             <div class="ca-progress-card">
-              <!-- VIDEO PLAYER MOVED HERE -->
-              <div class="ca-progress-video-thumb video-container"
-                style="position: relative; padding: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; height: 250px; width: 100%; border-top-left-radius: 12px; border-top-right-radius: 12px; transform: translateZ(0);">
-                <video class="mat-elevation-z8" #previewVideoElem autoplay [muted]="true" controls
-                  disablePictureInPicture style="width: 100%; height: 100%; object-fit: contain;">
-                  <source [src]="videoPath" />
-                  <track label="Voice-over" kind="subtitles" #previewTrackElem default />
-                </video>
-                <canvas #magicCanvas style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
-                <div #canvasDragElement class="canvas-drag-element visibility-hidden" cdkDrag cdkDragLockAxis="x"
-                  cdkDragBoundary=".video-container" [cdkDragFreeDragPosition]="dragPosition"></div>
-              </div>
+              <!-- 01 — ASSET -->
+              <div class="ca-progress-block ca-progress-block-asset">
+                <div class="ca-progress-video-thumb video-container"
+                  style="position: relative; padding: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; height: 230px; width: 100%; border-top-left-radius: 12px; border-top-right-radius: 12px; transform: translateZ(0);">
+                  <video class="mat-elevation-z8" #previewVideoElem autoplay [muted]="true" controls
+                    disablePictureInPicture style="width: 100%; height: 100%; object-fit: contain;">
+                    <source [src]="videoPath" />
+                    <track label="Voice-over" kind="subtitles" #previewTrackElem default />
+                  </video>
+                  <canvas #magicCanvas style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
+                  <div #canvasDragElement class="canvas-drag-element visibility-hidden" cdkDrag cdkDragLockAxis="x"
+                    cdkDragBoundary=".video-container" [cdkDragFreeDragPosition]="dragPosition"></div>
+                </div>
 
-              <div class="ca-progress-card-title">{{ campaignName || cleanVideoName }}
-              </div>
-              <div class="ca-progress-card-status"><mat-icon>check_circle</mat-icon> Video cargado correctamente</div>
-
-              <div class="ca-progress-video-details">
-                <div class="ca-progress-detail-col">
-                  <mat-icon>schedule</mat-icon>
-                  <div>
-                    <div class="ca-progress-detail-lbl">Duración</div>
-                    <div class="ca-progress-detail-val">{{ selectedFile || selectedHistoryRun ? selectedFileDurationStr
-                      : 'N/A' }}</div>
-                  </div>
-                </div>
-                <div class="ca-progress-detail-col">
-                  <mat-icon>insert_drive_file</mat-icon>
-                  <div>
-                    <div class="ca-progress-detail-lbl">Formato</div>
-                    <div class="ca-progress-detail-val">MP4</div>
-                  </div>
-                </div>
-                <div class="ca-progress-detail-col">
-                  <mat-icon>aspect_ratio</mat-icon>
-                  <div>
-                    <div class="ca-progress-detail-lbl">Resolución</div>
-                    <div class="ca-progress-detail-val">{{ selectedFile || selectedHistoryRun ?
-                      selectedFileResolutionStr : 'N/A' }}</div>
-                  </div>
-                </div>
-                <div class="ca-progress-detail-col">
-                  <mat-icon>cloud_upload</mat-icon>
-                  <div>
-                    <div class="ca-progress-detail-lbl">Tamaño</div>
-                    <div class="ca-progress-detail-val">{{ selectedFile ? (selectedFile.size / 1048576 | number:'1.1-1')
-                      + ' MB' : 'N/A' }}</div>
-                  </div>
+                <div class="ca-progress-card-title">{{ campaignName || cleanVideoName }}</div>
+                <div class="ca-progress-card-status">
+                  <mat-icon>check_circle</mat-icon> Video cargado correctamente
                 </div>
               </div>
 
-              <div class="ca-progress-context-section">
+              <!-- 02 — ESPECIFICACIONES -->
+              <div class="ca-progress-block ca-progress-video-details">
+                <div class="ca-progress-detail-col">
+                  <mat-icon class="ca-spec-icon">schedule</mat-icon>
+                  <div class="ca-progress-detail-lbl">Duración</div>
+                  <div class="ca-progress-detail-val">{{ selectedFile || selectedHistoryRun ? selectedFileDurationStr : 'N/A' }}</div>
+                </div>
+                <div class="ca-progress-detail-col">
+                  <mat-icon class="ca-spec-icon">insert_drive_file</mat-icon>
+                  <div class="ca-progress-detail-lbl">Formato</div>
+                  <div class="ca-progress-detail-val">MP4</div>
+                </div>
+                <div class="ca-progress-detail-col">
+                  <mat-icon class="ca-spec-icon">aspect_ratio</mat-icon>
+                  <div class="ca-progress-detail-lbl">Resolución</div>
+                  <div class="ca-progress-detail-val">{{ selectedFile || selectedHistoryRun ? selectedFileResolutionStr : 'N/A' }}</div>
+                </div>
+                <div class="ca-progress-detail-col">
+                  <mat-icon class="ca-spec-icon">cloud_upload</mat-icon>
+                  <div class="ca-progress-detail-lbl">Tamaño</div>
+                  <div class="ca-progress-detail-val">{{ selectedFile ? (selectedFile.size / 1048576 | number:'1.1-1') + ' MB' : 'N/A' }}</div>
+                </div>
+              </div>
+
+              <!-- 03 — CONTEXTO DEL ANÁLISIS -->
+              <div class="ca-progress-block ca-progress-context-section">
                 <div class="ca-progress-context-title">Contexto del análisis</div>
 
-                <div class="ca-progress-context-row">
-                  <mat-icon>track_changes</mat-icon>
-                  <div>
+                <div class="ca-progress-context-list">
+                  <div class="ca-progress-context-col">
+                    <mat-icon class="ca-context-icon">track_changes</mat-icon>
                     <div class="ca-progress-context-lbl">Objetivo de campaña</div>
                     <div class="ca-progress-context-val">{{ campaignObjective || 'No definido' }}</div>
                   </div>
-                </div>
 
-                <div class="ca-progress-context-row">
-                  <mat-icon>group</mat-icon>
-                  <div>
+                  <div class="ca-progress-context-col">
+                    <mat-icon class="ca-context-icon">group</mat-icon>
                     <div class="ca-progress-context-lbl">Audiencia principal</div>
                     <div class="ca-progress-context-val">{{ targetAudience || 'No definido' }}</div>
                   </div>
-                </div>
 
-                <div class="ca-progress-context-row">
-                  <mat-icon>language</mat-icon>
-                  <div>
+                  <div class="ca-progress-context-col">
+                    <mat-icon class="ca-context-icon">language</mat-icon>
                     <div class="ca-progress-context-lbl">Mercado</div>
                     <div class="ca-progress-context-val">{{ country || 'No definido' }}</div>
                   </div>
                 </div>
               </div>
 
-              <div class="ca-progress-intelligence-section">
-                <div class="ca-progress-context-title">Inteligencia incluida</div>
+              <!-- 04 — INTELIGENCIA CREATIVA (ABCD) -->
+              <div class="ca-progress-block ca-progress-intelligence-section">
+                <div class="ca-progress-context-title">Inteligencia creativa (ABCD)</div>
 
                 <div class="ca-abcd-carousel-wrapper">
                   <div class="ca-abcd-card-container">
@@ -849,8 +891,7 @@ limitations under the License.
                     <div class="ca-abcd-card ca-abcd-card-full">
                       <div class="ca-abcd-badge">Creative (ABCD)</div>
                       <div class="ca-abcd-title">El estándar de YouTube</div>
-                      <div class="ca-abcd-desc">Análisis basado en los 4 pilares fundamentales para evaluar la
-                        efectividad creativa del video.</div>
+                      <div class="ca-abcd-desc">Análisis basado en los 4 pilares fundamentales para evaluar la efectividad creativa del video.</div>
                     </div>
                     }
                     <!-- Cara 2: A -->
@@ -858,8 +899,7 @@ limitations under the License.
                     <div class="ca-abcd-card ca-abcd-card-full">
                       <div class="ca-abcd-letter">A</div>
                       <div class="ca-abcd-title">Attention (Atención)</div>
-                      <div class="ca-abcd-desc">Evalúa si el video capta la atención del usuario en los primeros
-                        segundos.</div>
+                      <div class="ca-abcd-desc">Evalúa si el video capta la atención del usuario en los primeros segundos.</div>
                     </div>
                     }
                     <!-- Cara 3: B -->
@@ -902,7 +942,6 @@ limitations under the License.
                       (click)="setAbcdSlide(4)"></div>
                   </div>
                 </div>
-
 
               </div>
 
