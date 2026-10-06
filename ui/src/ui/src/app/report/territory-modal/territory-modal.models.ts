@@ -16,6 +16,7 @@ export interface TerritoryOpportunityViewModel {
   insight: string;
   opportunity: string;
   suggestedFormat: string;
+  intervention?: 'personalize' | 'amplify';
   adaptationCount: number;
   relevanceLabel: string;
 }
@@ -25,6 +26,7 @@ export interface TerritoryAdaptationCardViewModel {
   sourceOpportunityIndex: number;
   sourceOpportunityLabel: string;
   classification: AdaptationType;
+  intervention?: 'personalize' | 'amplify';
   title: string;
   description: string;
   suggestedFormat: string;

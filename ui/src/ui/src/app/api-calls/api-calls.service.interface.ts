@@ -273,7 +273,9 @@ export interface CompassAbcdDimensiones {
   direction_score: number;
 }
 
-export interface CompassData {
+export type CreativeIntelligenceAbcdDimensiones = CompassAbcdDimensiones;
+
+export interface CreativeIntelligenceData {
   meta: {
     brand: string;
     campaign: string;
@@ -333,6 +335,8 @@ export interface CompassData {
     testing_framework: V2TestingFrameworkItem[];
   } | null;
 }
+
+export type CompassData = CreativeIntelligenceData;
 
 /** Response structure for fetching previous runs. */
 export interface PreviousRunsResponse {
@@ -556,13 +560,13 @@ export interface ApiCalls {
   ): Observable<string>;
   sendInsightsReport(payload: object): Observable<string>;
   generateGeoIntelligence(
-    compassContextJson: string,
+    ciContextJson: string,
     macroJson: string,
     microJson: string
   ): Observable<string>;
   generateChannelIntelligence(
-    compassContextJson: string,
+    ciContextJson: string,
     categories: string[]
   ): Observable<string>;
-  generatePrioritization(compassContextJson: string): Observable<string>;
+  generatePrioritization(ciContextJson: string): Observable<string>;
 }

@@ -1,0 +1,100 @@
+/* ==========================================================================
+   WPP PRIMARY TYPEFACE — LOCAL WOFF2 FONT DECLARATIONS
+   All 12 weights & styles preserved from the approved visual system.
+   ========================================================================== */
+
+/* 100 Thin (Restricted from operational system UI roles) */
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-ThinItalic.woff2') format('woff2');
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* 300 Light (Editorial headlines, H1, Display metric numbers) */
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-LightItalic.woff2') format('woff2');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* 400 Regular (Standard body copy, narrative descriptions, table cells) */
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-RegularItalic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* 500 Medium (Form labels, table headers, active navigation states) */
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-MediumItalic.woff2') format('woff2');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* 700 Bold (Category eyebrows, emphasis tags, card headers) */
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* 900 Black (Exceptional cover display moments only) */
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'WPP';
+  src: url('../../assets/fonts/WPP-BlackItalic.woff2') format('woff2');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}

@@ -13,6 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
+<!-- ── ATMOSPHERIC BACKGROUND LAYER (GLOBAL — TREATMENT 17) ─────────── -->
+<div class="ci-atmospheric-layer" aria-hidden="true"></div>
+
 <!-- ── TOP BAR REMOVED ────────────────────────────────────── -->
 <div [hidden]="!loading" class="sticky top-64">
   <mat-progress-bar mode="indeterminate"></mat-progress-bar>
@@ -25,13 +28,13 @@ limitations under the License.
         <mat-icon>auto_awesome</mat-icon>
       </button>
       <button type="button" class="ci-nav-rail-btn" [class.active]="stepper.selectedIndex === 2"
-        [disabled]="!isAnalysisComplete && stepper.selectedIndex !== 2" (click)="goToCompass()"
+        [disabled]="!isAnalysisComplete && stepper.selectedIndex !== 2" (click)="goToReport()"
         matTooltip="Reporte" aria-label="Ir al reporte">
         <mat-icon>description</mat-icon>
       </button>
       <span class="ci-nav-rail-divider" aria-hidden="true"></span>
-      <button type="button" class="ci-nav-rail-btn" (click)="downloadCompassReport()"
-        [disabled]="!compassData" matTooltip="Descargar reporte" aria-label="Descargar reporte">
+      <button type="button" class="ci-nav-rail-btn" (click)="downloadReport()"
+        [disabled]="!ciData" matTooltip="Descargar reporte" aria-label="Descargar reporte">
         <mat-icon>download</mat-icon>
       </button>
     </nav>
@@ -744,7 +747,7 @@ limitations under the License.
                   <mat-icon>schedule</mat-icon> Insights estará disponible al finalizar
                 </div>
                 <button *ngIf="isAnalysisComplete" type="button" class="ca-btn-primary" style="margin-bottom: 8px;"
-                  (click)="goToCompass()">
+                  (click)="goToReport()">
                   Ver Insights <mat-icon>arrow_forward</mat-icon>
                 </button>
                 <div class="ca-progress-banner-subtext">El documento se habilitará automáticamente cuando el análisis
@@ -908,489 +911,14 @@ limitations under the License.
         </div>
 
         <div class="ci-analysis-results" *ngIf="!isAnalysisInProgress">
-
-          <div class="row justify-left-margin-top-8" [hidden]="true">
-            @if (previousRenders && previousRenders.length > 0) {
-            <mat-form-field class="width-300" subscriptSizing="dynamic">
-              <mat-label>Cargar videos renderizados</mat-label>
-              <mat-select (selectionChange)="loadPreviousRender($event.value)">
-                @for (render of previousRenders; track $index) {
-                <mat-option [value]="render.value">{{
-                  render.displayName
-                  }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-            } @else if (!previousRenders) {
-            <div>
-              <mat-spinner class="margin-bottom-16-left-4"></mat-spinner>
-              Cargando videos renderizados
-            </div>
-            }
+          <div class="ci-analysis-completed-card" *ngIf="ciData" style="text-align: center; padding: 32px 16px;">
+            <mat-icon style="font-size: 48px; width: 48px; height: 48px; color: #22c55e; margin-bottom: 12px;">check_circle</mat-icon>
+            <h3 style="margin: 0 0 8px; font-size: 20px; font-weight: 700;">Análisis completado</h3>
+            <p style="margin: 0 0 20px; color: #888; font-size: 14px;">Se han generado las evaluaciones ABCD, el contexto territorial y las oportunidades creativas.</p>
+            <button mat-raised-button color="primary" (click)="goToReport()">
+              Ver Reporte <mat-icon>arrow_forward</mat-icon>
+            </button>
           </div>
-          <div class="row flex-wrap-with-gap" style="display: none !important;">
-            <div class="row column-layout-flex-start">
-              @if (variants?.length) {
-              <mat-slide-toggle #reorderSegmentsToggle="matSlideToggle" color="primary" class="display-block"
-                [checked]="false" matTooltip="Desactiva para restaurar el orden original de segmentos"
-                (change)="restoreSegmentOrder()">Reordenar segmentos</mat-slide-toggle>
-              <mat-checkbox class="margin-left-neg-10"
-                matTooltip="Selecciona una variante para restaurar sus segmentos originales" color="primary"
-                [(ngModel)]="allSegmentsToggle" (click)="toggleAllSegments()">
-                {{ allSegmentsToggle ? 'Deseleccionar' : 'Seleccionar' }} todos los segmentos
-              </mat-checkbox>
-              }
-            </div>
-            <div>
-              <mat-button-toggle-group #segmentModeToggle="matButtonToggleGroup" value="segments"
-                [disabled]="loading && !generatingVariants" hideSingleSelectionIndicator
-                (change)="updateVideoPreview()">
-                <mat-button-toggle value="preview" matTooltip="Vista previa de video">
-                  <mat-icon>play_arrow</mat-icon>
-                </mat-button-toggle>
-                <mat-button-toggle value="segments" matTooltip="Info de segmentos">
-                  <mat-icon>theaters</mat-icon>
-                </mat-button-toggle>
-                <mat-button-toggle *ngIf="
-                previewToggleGroup.value !== 'toggle' &&
-                previewToggleGroup.value !== 'settings' &&
-                previewVideoElem.paused &&
-                previewVideoElem.currentTime > 0 &&
-                segmentModeToggle.value === 'preview'
-              " value="movecrop" [matTooltip]="
-                moveCropArea ? 'Save adjusted crop-area' : 'Move crop-area'
-              " [disabled]="!activeVideoObjects" (click)="toggleMoveCropArea()">
-                  <mat-icon>{{ moveCropArea ? 'save' : 'open_with' }}</mat-icon>
-                </mat-button-toggle>
-              </mat-button-toggle-group>
-            </div>
-            <div class="flex-center-items flex-wrap-with-gap">
-              <mat-checkbox *ngIf="previewToggleGroup.value !== 'toggle' && previewToggleGroup.value !== 'settings'"
-                color="primary" [(ngModel)]="useBlankingFill" (change)="loadPreview()"
-                matTooltip="Resize video over a blurred background instead of cropping. You need to select an aspect ratio as well."
-                class="margin-right-16">
-                Relleno de blanqueo
-              </mat-checkbox>
-              <mat-button-toggle-group #previewToggleGroup="matButtonToggleGroup" value="toggle"
-                [disabled]="!videoObjects || segmentModeToggle.value !== 'preview'" hideSingleSelectionIndicator
-                (click)="loadPreview()" class="flex-wrap">
-                <mat-button-toggle value="toggle" [matTooltip]="
-                displayObjectTracking ? 'Object tracking' : 'Preview off'
-              ">
-                  <mat-icon>{{ displayObjectTracking ? 'select_all' : 'deselect' }}
-                  </mat-icon>
-                </mat-button-toggle>
-                @for (ratio of aspectRatios; track ratio) {
-                <mat-button-toggle [value]="ratio" [matTooltip]="ratio + ' format'" [disabled]="generatingPreviews">
-                  <span class="text-12-medium">{{ ratio }}</span>
-                </mat-button-toggle>
-                }
-                <mat-button-toggle value="settings" matTooltip="Diálogo de ajustes"
-                  [disabled]="!previewAnalyses['1:1']">
-                  <mat-icon>settings</mat-icon>
-                </mat-button-toggle>
-              </mat-button-toggle-group>
-            </div>
-          </div>
-          <!-- Segments on top -->
-          <div style="width: 100%; margin-bottom: 24px; display: none !important;">
-            <segments-list [segmentList]="avSegments" [segmentMode]="segmentModeToggle.value"
-              [allowSelection]="variants !== undefined" [draggable]="reorderSegmentsToggle?.checked ?? false"
-              [currentSegmentId]="currentSegmentId || 0" [segmentMarkers]="segmentMarkers"
-              (seekToSegmentEvent)="seekToSegment($event)" (segmentSplitEvent)="splitSegment($event)"
-              style="display: block; width: 100%;"></segments-list>
-          </div>
-
-          <div class="preview-video-row" style="align-items: flex-start; margin-top: 0; display: none !important;">
-
-            <!-- RIGHT COLUMN: Analysis & Rating -->
-            <div class="rating-sidebar column"
-              style="flex: 1; max-height: 80vh; overflow-y: auto; padding: 16px; border-radius: 8px; background-color: #fcfcfc; border: 1px solid #e0e0e0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-
-              <!-- ABCD Evaluation Table Redesigned -->
-              <div *ngIf="variants && variants.length > 0"
-                style="background: #fff; border-radius: 8px; margin-top: 16px; padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
-                <ng-container *ngFor="let variant of variants">
-                  <!-- Top Section: Score and ABCD -->
-                  <div style="display: flex; gap: 24px; margin-bottom: 24px;">
-
-                    <!-- Left: Score -->
-                    <div
-                      style="flex: 0 0 160px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: #f8f9fa; border-radius: 8px; padding: 16px; border: 1px solid #e0e0e0;">
-                      <div
-                        style="font-size: 14px; font-weight: 700; color: #202124; margin-bottom: 16px; text-transform: uppercase; text-align: center;">
-                        Calificación</div>
-                      <div class="score-circle"
-                        [ngClass]="variant.score / getMaxScore() >= 0.82 ? 'excellent' : variant.score / getMaxScore() >= 0.65 ? 'good' : variant.score / getMaxScore() >= 0.47 ? 'average' : 'poor'"
-                        style="margin: 0; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                        <span class="score-number" style="font-size: 28px; line-height: 1;">{{ variant.score }}</span>
-                        <span class="score-max" style="font-size: 14px; margin-left: 2px;">/{{ getMaxScore() }}</span>
-                      </div>
-                      <div class="score-label"
-                        style="margin-top: 16px; font-weight: 600; text-align: center; font-size: 14px;"
-                        [ngStyle]="{'color': getScoreColor(variant.score)}">
-                        {{ getScoreLabel(variant.score) }}
-                      </div>
-                    </div>
-
-                    <!-- Right: ABCD Pillars (2x2 Grid) -->
-                    <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 0;">
-                      <div class="pillar-row"
-                        style="background: #fafafa; border-radius: 6px; padding: 12px; border-left: 4px solid #202124;">
-                        <div class="pillar-header"
-                          style="margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                          <mat-icon class="pillar-icon"
-                            style="font-size: 18px; width: 18px; height: 18px; color: #202124;">visibility</mat-icon>
-                          <strong style="color: #202124;">A - Atención</strong>
-                        </div>
-                        <div class="pillar-content" style="font-size: 13px; color: #333;"
-                          [innerHTML]="marked.parse(renderAbcdCards(variant.abcd.attention))"></div>
-                      </div>
-                      <div class="pillar-row"
-                        style="background: #fafafa; border-radius: 6px; padding: 12px; border-left: 4px solid #ea4335;">
-                        <div class="pillar-header"
-                          style="margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                          <mat-icon class="pillar-icon"
-                            style="font-size: 18px; width: 18px; height: 18px; color: #ea4335;">branding_watermark</mat-icon>
-                          <strong style="color: #202124;">B - Branding</strong>
-                        </div>
-                        <div class="pillar-content" style="font-size: 13px; color: #333;"
-                          [innerHTML]="marked.parse(renderAbcdCards(variant.abcd.branding))"></div>
-                      </div>
-                      <div class="pillar-row"
-                        style="background: #fafafa; border-radius: 6px; padding: 12px; border-left: 4px solid #fbbc04;">
-                        <div class="pillar-header"
-                          style="margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                          <mat-icon class="pillar-icon"
-                            style="font-size: 18px; width: 18px; height: 18px; color: #fbbc04;">people</mat-icon>
-                          <strong style="color: #202124;">C - Conexión</strong>
-                        </div>
-                        <div class="pillar-content" style="font-size: 13px; color: #333;"
-                          [innerHTML]="marked.parse(renderAbcdCards(variant.abcd.connection))"></div>
-                      </div>
-                      <div class="pillar-row"
-                        style="background: #fafafa; border-radius: 6px; padding: 12px; border-left: 4px solid #34a853;">
-                        <div class="pillar-header"
-                          style="margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                          <mat-icon class="pillar-icon"
-                            style="font-size: 18px; width: 18px; height: 18px; color: #34a853;">call_made</mat-icon>
-                          <strong style="color: #202124;">D - Dirección</strong>
-                        </div>
-                        <div class="pillar-content" style="font-size: 13px; color: #333;"
-                          [innerHTML]="marked.parse(renderAbcdCards(variant.abcd.direction))"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style="height: 1px; background-color: #e0e0e0; margin: 0 0 16px 0; width: 100%;"></div>
-
-                  <!-- Bottom Section: Context -->
-                  <div
-                    style="display: flex; flex-direction: column; gap: 16px; background: #f8f9fa; padding: 16px; border-radius: 8px;">
-                    <div>
-                      <div
-                        style="color: #202124; font-weight:700; font-size:14px; margin-bottom:8px; display: flex; align-items: center; gap: 6px;">
-                        <mat-icon style="font-size:18px; height:18px; width:18px;">info</mat-icon> Contexto
-                      </div>
-                      <div style="font-size: 14px; font-weight: 400; color: #444; line-height: 1.5;">{{
-                        variant.description }}</div>
-                    </div>
-                    <div>
-                      <div
-                        style="color: #202124; font-weight:700; font-size:14px; margin-bottom:8px; display: flex; align-items: center; gap: 6px;">
-                        <mat-icon style="font-size:18px; height:18px; width:18px;">movie</mat-icon> Segmentos detectados
-                      </div>
-                      <div style="font-size: 14px; font-weight: 500; color: #188038;">{{ variant.scenes }}</div>
-                    </div>
-                  </div>
-                </ng-container>
-              </div>
-            </div>
-          </div>
-          <!-- Transcription Editor -->
-          <div class="row" style="margin-top: 16px; width: 100%;" *ngIf="analyseAudio && folder" [hidden]="true">
-            <mat-expansion-panel style="width: 100%;">
-              <mat-expansion-panel-header>
-                <mat-panel-title>
-                  <mat-icon class="panel-icon">subtitles</mat-icon>
-                  <span>Editar o Descargar Transcripción</span>
-                </mat-panel-title>
-                <mat-panel-description style="justify-content: flex-end;">
-                  <button mat-icon-button *ngIf="transcriptionText && !transcriptionLoading"
-                    (click)="downloadTranscript(); $event.stopPropagation()" matTooltip="Descargar Transcripción"
-                    color="primary">
-                    <mat-icon>download</mat-icon>
-                  </button>
-                </mat-panel-description>
-              </mat-expansion-panel-header>
-              <mat-progress-bar *ngIf="transcriptionLoading" mode="indeterminate"></mat-progress-bar>
-              <div style="margin-top: 16px;" *ngIf="transcriptionLoaded && !transcriptionLoading && transcriptionText">
-                <span class="notice-text" style="display: block; margin-bottom: 8px;">
-                  Edita el texto de transcripción en formato WebVTT. Mantén el formato de marca de tiempo (HH:MM:SS.mmm
-                  -->
-                  HH:MM:SS.mmm) intacto.
-                </span>
-                <mat-form-field style="width: 100%;" appearance="outline" floatLabel="always">
-                  <mat-label>Transcripción (WebVTT)</mat-label>
-                  <textarea matInput [(ngModel)]="transcriptionText" rows="15"
-                    style="font-size: 12px; color: #e0e6ed;"></textarea>
-                </mat-form-field>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                  <button mat-stroked-button (click)="downloadTranscript()"
-                    [disabled]="!transcriptionText || transcriptionLoading">
-                    <mat-icon>download</mat-icon>
-                    Descargar Transcripción
-                  </button>
-                  <button mat-raised-button color="primary" (click)="applyTranscription()"
-                    [disabled]="!transcriptionText || transcriptionLoading || loading">
-                    <mat-icon>check</mat-icon>
-                    Aplicar Cambios
-                  </button>
-                </div>
-              </div>
-              <div style="margin-top: 16px; padding: 16px; color: rgba(255,255,255,0.4);"
-                *ngIf="!transcriptionLoading && transcriptionLoaded && !transcriptionText">
-                <mat-icon style="vertical-align: middle;">info</mat-icon>
-                No hay transcripción disponible. El archivo de transcripción puede estar aún procesándose o no fue
-                generado.
-              </div>
-              <div style="margin-top: 16px; padding: 16px; color: rgba(255,255,255,0.4);"
-                *ngIf="!transcriptionLoading && !transcriptionLoaded">
-                <mat-icon style="vertical-align: middle;">hourglass_empty</mat-icon>
-                Esperando a que la transcripción se complete...
-              </div>
-            </mat-expansion-panel>
-          </div>
-          <div class="row">
-            <div class="margin-left-auto-right-150" *ngIf="variants && segmentModeToggle.value === 'preview'">
-              Duration:
-              <mat-chip>{{ calculateSelectedSegmentsDuration() }}s</mat-chip>
-            </div>
-            <div [ngStyle]="{
-            'margin-left': variants && segmentModeToggle.value === 'preview' ? 'auto' : '',
-            'margin-right': variants && segmentModeToggle.value === 'preview' ? '200px' : ''
-          }" class="flex-center-items" style="display: none;">
-              <mat-chip-set>
-                <mat-chip disableRipple [ngClass]="transcriptStatus">
-                  <mat-icon matChipAvatar fontIcon="{{ transcriptStatus }}"></mat-icon>
-                  Transcribiendo voz en off
-                </mat-chip>
-                <mat-chip disableRipple [ngClass]="analysisStatus">
-                  <mat-icon matChipAvatar fontIcon="{{ analysisStatus }}"></mat-icon>
-                  Analizando elementos del video
-                </mat-chip>
-                <mat-chip disableRipple [ngClass]="segmentsStatus">
-                  <mat-icon matChipAvatar fontIcon="{{ segmentsStatus }}"></mat-icon>
-                  Analizando segmentos de video
-                </mat-chip>
-                <mat-chip *ngIf="rendering" disableRipple [ngClass]="combinationStatus">
-                  <mat-icon matChipAvatar fontIcon="{{ combinationStatus }}"></mat-icon>
-                  Renderizando variantes de video
-                </mat-chip>
-              </mat-chip-set>
-            </div>
-            <div class="margin-left-auto" *ngIf="variants && segmentModeToggle.value === 'preview'"></div>
-          </div>
-
-          <mat-divider></mat-divider>
-          <h3 style="margin-top: 16px; margin-bottom: 0; padding-left: 16px; color: #fff; display: none;">Generación de
-            Variantes Cortas</h3>
-          <div class="row gap-16-margin-top-16" style="display: none;">
-            <div class="form-column-layout">
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
-                <mat-label>¿Qué deben incluir o excluir tus variantes de video?</mat-label>
-                <mat-select [(ngModel)]="selectedPromptOption" (selectionChange)="onPromptSelectionChange()">
-                  @for (promptOption of predefinedPrompts; track promptOption.value) {
-                  <mat-option [value]="promptOption.value">
-                    <div class="flex-column">
-                      <strong>{{ promptOption.label }}</strong>
-                      @if (promptOption.text) {
-                      <span class="prompt-option-text">
-                        {{ promptOption.text }}
-                      </span>
-                      }
-                    </div>
-                  </mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field class="flex-1" subscriptSizing="dynamic">
-                <mat-label>Editar Prompt</mat-label>
-                <textarea matInput [(ngModel)]="prompt" (keydown)="onPromptKeydown($event)"
-                  [placeholder]="isCustomPrompt ? (defaultPrompt + ' (Press Tab to use)') : 'Edit the prompt before generating'"></textarea>
-              </mat-form-field>
-            </div>
-            <div class="flex-column margin-top-neg-16">
-              <mat-checkbox color="primary" [(ngModel)]="shortenVideo" (ngModelChange)="onShortenVideoChange($event)"
-                [disabled]="loading || (avSegments?.length === 1)" class="margin-bottom-10">
-                Acortar video
-              </mat-checkbox>
-              <span class="notice-text single-segment-warning" *ngIf="avSegments && avSegments.length === 1">
-                Acortamiento deshabilitado: Solo se detectó 1 segmento
-              </span>
-              <div [class.disabled-overlay]="!shortenVideo">
-                <mat-label>Duración objetivo:</mat-label>
-                <mat-slider discrete showTickMarks [max]="math.round(previewVideoElem.duration)" [min]="step"
-                  [step]="step" [disabled]="loading || !shortenVideo">
-                  <input matSliderThumb [(ngModel)]="duration" #durationSlider />
-                </mat-slider>
-              </div>
-              <button type="button" mat-raised-button color="primary" (click)="generateVariants()" [disabled]="loading">
-                <mat-icon>auto_awesome</mat-icon>Generar variantes
-              </button>
-            </div>
-          </div>
-          <div class="row margin-top-0">
-            <mat-expansion-panel [disabled]="loading" class="width-full" style="display: none !important;">
-              <mat-expansion-panel-header>
-                <mat-panel-title class="prompts-panel">
-                  <mat-icon class="panel-icon">settings_suggest</mat-icon>
-                  <span>Ajustes avanzados</span>
-                </mat-panel-title>
-              </mat-expansion-panel-header>
-              <span class="notice-text prompt-notice-text">Usa sintaxis Markdown para mejores resultados.</span>
-              <mat-form-field class="width-300" subscriptSizing="dynamic">
-                <mat-label>Seleccionar Objetivo de Negocio</mat-label>
-                <mat-select [(ngModel)]="selectedAbcdType" (selectionChange)="setEvalPrompt()">
-                  @for (bo of businessObjectives; track $index) {
-                  <mat-option [value]="bo.value">{{ bo.displayName }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <div class="prompt-container">
-                <mat-form-field subscriptSizing="dynamic">
-                  <mat-label>Prompt de evaluación</mat-label>
-                  <textarea #evalPromptTextarea matInput class="prompt-textarea" (blur)="parseContentMarkdown()"
-                    [(ngModel)]="evalPrompt">
-              </textarea>
-                  <div #evalPromptPlaceholder class="prompt-placeholder" contenteditable="true"
-                    (focus)="toggleContentDisplay()" [innerHTML]="marked.parse(evalPrompt)"></div>
-                </mat-form-field>
-                <button mat-icon-button matTooltip="Restablecer prompt" (click)="setEvalPrompt()">
-                  <mat-icon>refresh</mat-icon>
-                </button>
-              </div>
-            </mat-expansion-panel>
-          </div>
-          <div class="row margin-top-16" [hidden]="true">
-            <span class="notice-text">Los segmentos seleccionados por la IA pueden no seguir las instrucciones del
-              prompt,
-              y la variante general del video puede no cumplir la duración objetivo deseada. Se recomienda revisar y
-              potencialmente modificar la selección. Navegar entre variantes borrará cualquier cambio.
-            </span>
-          </div>
-
-          <ng-container *ngIf="avSegments">
-            <mat-divider *ngIf="variants?.length" class="margin-vertical-divider" [hidden]="true"></mat-divider>
-            <div *ngIf="variants?.length" [hidden]="true">
-              <span class="settings-header">
-                <mat-icon>video_settings</mat-icon><span class="section-heading">Ajustes de renderizado</span>
-              </span>
-              <div class="margin-top-8">
-                <mat-form-field subscriptSizing="dynamic">
-                  <mat-label>Audio de variante:</mat-label>
-                  <mat-select [(ngModel)]="audioSettings">
-                    <mat-option value="segment">Segmentos individuales</mat-option>
-                    <span matTooltip="Only available for videos with voice-over" [matTooltipDisabled]="analyseAudio">
-                      <mat-option value="music" [disabled]="!analyseAudio">Solo música superpuesta</mat-option>
-                    </span>
-                    <mat-option value="continuous">Superponer todo el audio</mat-option>
-                  </mat-select>
-                </mat-form-field>
-              </div>
-              <div class="margin-top-8" *ngIf="audioSettings !== 'segment'">
-                <mat-form-field subscriptSizing="dynamic">
-                  <mat-label>Ajustes de superposición:</mat-label>
-                  <mat-select [(ngModel)]="overlaySettings">
-                    <span matTooltip="Start from the first segment of your variant">
-                      <mat-option value="variant_start">Variant start</mat-option>
-                    </span>
-                    <span matTooltip="Start from the beginning of the original video">
-                      <mat-option value="video_start">Video start</mat-option>
-                    </span>
-                    <span matTooltip="End with the ending of the original video">
-                      <mat-option value="video_end">Video end</mat-option>
-                    </span>
-                    <span matTooltip="End with the last segment of your variant">
-                      <mat-option value="variant_end">Variant end</mat-option>
-                    </span>
-                  </mat-select>
-                </mat-form-field>
-              </div>
-              <div class="user-settings margin-top-8">
-                <span matTooltip="Fades out audio at the end of the video">
-                  <mat-checkbox color="primary" [(ngModel)]="fadeOut">
-                    Desvanecimiento
-                  </mat-checkbox>
-                </span>
-                <span
-                  matTooltip="Resize video over a blurred background instead of cropping. Applies to selected render formats."
-                  class="margin-left-16">
-                  <mat-checkbox color="primary" [(ngModel)]="useBlankingFill">
-                    Relleno de blanqueo
-                  </mat-checkbox>
-                </span>
-              </div>
-              <div class="user-settings">
-                <mat-checkbox color="primary" [(ngModel)]="demandGenAssets">
-                  Generar activos de Demand Gen
-                </mat-checkbox>
-                <img class="demand-gen"
-                  src="//storage.googleapis.com/support-kms-prod/1jn04nExNejhtrTJy7qjEhsjiBkDci1r27Ga"
-                  alt="This icon represents Demand Gen, which generates demands and delivers business results on Google's most visual and entertaining surfaces."
-                  data-mime-type="image/svg+xml" />
-              </div>
-              <div class="flex-center-items margin-top-8">
-                <span>Formatos de renderizado:</span>
-                <mat-button-toggle-group #renderFormatsToggle="matButtonToggleGroup" class="margin-left-16"
-                  hideMultipleSelectionIndicator multiple matTooltip="Click to select/unselect each format">
-                  @for (ratio of aspectRatios; track ratio) {
-                  <mat-button-toggle [value]="ratio" [matTooltip]="ratio">
-                    <span class="text-12-medium">{{ ratio }}</span>
-                  </mat-button-toggle>
-                  }
-                </mat-button-toggle-group>
-              </div>
-              <div class="row">
-                <button type="button" mat-raised-button color="primary" (click)="addToRenderQueue()">
-                  <mat-icon>add_to_queue</mat-icon>Añadir a la cola de renderizado
-                </button>
-              </div>
-            </div>
-          </ng-container>
-          <!-- Combos Panel inside Step 2 -->
-          <mat-expansion-panel #videoCombosPanel [disabled]="!combosJson" [hidden]="true">
-            <mat-expansion-panel-header>
-              <mat-panel-title class="panel-title"><mat-icon class="panel-icon">movie_filter</mat-icon>Videos
-                renderizados</mat-panel-title>
-              <mat-panel-description>
-                <a *ngIf="combos" href="{{ webAppUrl }}?inputCombosFolder={{ combosFolder }}" target="_blank"
-                  (click)="$event.stopPropagation()" matTooltip="Compartir videos renderizados"><mat-icon
-                    color="primary">share</mat-icon></a>
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-            <mat-tab-group>
-              <mat-tab *ngFor="let combo of combos" label="{{ combo.title }} -- {{ combo.duration }}">
-                <video-combo [gcsFolder]="folder" [combo]="combo"
-                  [showApprovalStatus]="showApprovalStatus"></video-combo>
-              </mat-tab>
-            </mat-tab-group>
-            <div *ngIf="!combos" class="flex-center-all">
-              <mat-spinner class="margin-bottom-16"></mat-spinner> Cargando videos renderizados
-            </div>
-            <div *ngIf="combos && showApprovalStatus" class="row flex-direction-column">
-              <button type="button" mat-raised-button color="primary" class="margin-bottom-16"
-                [disabled]="loading || json.stringify(combos) === json.stringify(originalCombos)"
-                (click)="storeCombosApproval()">
-                <mat-icon fontIcon="save"></mat-icon> Guardar estado de aprobación
-              </button>
-            </div>
-          </mat-expansion-panel>
-        </div> <!-- Close ngIf=!isAnalysisInProgress -->
-
-        <div class="row margin-top-16 margin-bottom-16 flex-gap-16" style="display: none;">
-          <button mat-button matStepperPrevious>Paso Anterior</button>
-          <button mat-raised-button color="primary" matStepperNext [disabled]="!analysisJson">Siguiente Paso</button>
         </div>
         </div><!-- /ci-analysis-view -->
       </mat-step>
@@ -1405,93 +933,231 @@ limitations under the License.
         <!-- V2 REPORT: CREATIVE INTELLIGENCE FOR ADVANCED TV           -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         <div class="v2-report">
+          <div class="v2-report-layout">
+            <!-- ── STICKY SIDEBAR NAVIGATION (4 CHAPTERS) ────────────────── -->
+            <aside class="v2-report-sidebar" aria-label="Navegación del Reporte">
+              <div class="v2-sidebar-brand-block">
+                <div class="v2-sidebar-wpp-wrap">
+                  <img src="assets/logos/WPPMediaSolution_Logo.svg" alt="WPP Media Solutions" class="v2-sidebar-wpp-logo" />
+                </div>
+                <div class="v2-sidebar-product-box">
+                  <img src="assets/logos/CreativeIntelligence_Logo_Lime.svg" alt="Creative Intelligence" class="v2-sidebar-ci-logo-lime" />
+                </div>
+                <div class="v2-sidebar-context-line">
+                  <span class="v2-sidebar-context-text">Advanced TV ·</span>
+                  <span class="v2-sidebar-context-badge">YouTube</span>
+                </div>
+              </div>
+
+              <div class="v2-sidebar-nav-section">
+                <span class="v2-sidebar-nav-label">Navegación</span>
+                <nav class="v2-sidebar-nav">
+                  <button type="button" class="v2-sidebar-nav-item"
+                    [class.active]="activeReportSection === 'report-creative-overview'"
+                    (click)="scrollToReportSection('report-creative-overview')">
+                    <div class="v2-nav-item-icon">
+                      <mat-icon>auto_awesome</mat-icon>
+                    </div>
+                    <div class="v2-nav-item-content">
+                      <span class="v2-nav-item-title">01 · Creative Evaluation</span>
+                      <span class="v2-nav-item-sub">Score ABCD &amp; Diagnóstico</span>
+                    </div>
+                  </button>
+
+                  <button type="button" class="v2-sidebar-nav-item"
+                    [class.active]="activeReportSection === 'report-territorial-context'"
+                    (click)="scrollToReportSection('report-territorial-context')">
+                    <div class="v2-nav-item-icon">
+                      <mat-icon>public</mat-icon>
+                    </div>
+                    <div class="v2-nav-item-content">
+                      <span class="v2-nav-item-title">02 · Territorial Context</span>
+                      <span class="v2-nav-item-sub">Oportunidades &amp; Mapa</span>
+                    </div>
+                  </button>
+
+                  <button type="button" class="v2-sidebar-nav-item"
+                    [class.active]="activeReportSection === 'report-creative-services'"
+                    (click)="scrollToReportSection('report-creative-services')">
+                    <div class="v2-nav-item-icon">
+                      <mat-icon>dashboard_customize</mat-icon>
+                    </div>
+                    <div class="v2-nav-item-content">
+                      <span class="v2-nav-item-title">03 · Creative Solutions</span>
+                      <span class="v2-nav-item-sub">Format Matching</span>
+                    </div>
+                  </button>
+
+                  <button type="button" class="v2-sidebar-nav-item"
+                    [class.active]="activeReportSection === 'report-testing-framework'"
+                    (click)="scrollToReportSection('report-testing-framework')">
+                    <div class="v2-nav-item-icon">
+                      <mat-icon>science</mat-icon>
+                    </div>
+                    <div class="v2-nav-item-content">
+                      <span class="v2-nav-item-title">04 · Testing Framework</span>
+                      <span class="v2-nav-item-sub">Metodología Transversal</span>
+                    </div>
+                  </button>
+                </nav>
+              </div>
+
+              <div class="v2-sidebar-footer">
+                <button type="button" class="v2-sidebar-download-btn" (click)="downloadReport()" [disabled]="!ciData">
+                  <mat-icon>download</mat-icon>
+                  <span>Descargar Reporte</span>
+                </button>
+                <div class="v2-sidebar-footer-note">CI YouTube · Advanced TV</div>
+              </div>
+            </aside>
+
+            <!-- ── MAIN REPORT CONTENT ────────────────────────────────── -->
+            <main class="v2-report-main">
+
 
           <!-- ── REPORT HERO ─────────────────────────────────────── -->
           <header class="v2-hero">
-            <div class="v2-hero-text">
-              <span class="v2-kicker">REPORTE</span>
-              <h1 class="v2-hero-title">Creative<br>Intelligence</h1>
-              <p class="v2-hero-subtitle">De las señales a decisiones creativas.</p>
-              <p class="v2-hero-desc">Analizamos tu contenido, entendemos el contexto de activación, identificamos
-                oportunidades por territorio y las convertimos en adaptaciones creativas.</p>
-            </div>
+            <!-- Top Grid: 1 Col Intro + 2 Cols Video 16:9 -->
+            <div class="v2-hero-top-grid">
+              <div class="v2-hero-text">
+                <span class="v2-kicker">REPORTE</span>
+                <h1 class="v2-hero-title">Creative<br>Intelligence</h1>
+                <p class="v2-hero-subtitle">De las señales a decisiones creativas.</p>
+                <p class="v2-hero-desc">Analizamos tu contenido, entendemos el contexto de activación, identificamos
+                  oportunidades por territorio y las convertimos en adaptaciones creativas.</p>
+              </div>
 
-            <div class="v2-hero-video">
-              <video *ngIf="videoPath" [src]="videoPath" autoplay [muted]="true" loop class="v2-video-el"></video>
-              <ng-container *ngIf="!videoPath">
-                <img *ngIf="selectedFileThumbnail || (avSegments && avSegments[0]?.segment_screenshot_uri)"
-                  [src]="selectedFileThumbnail || avSegments![0].segment_screenshot_uri" alt="Video thumbnail"
-                  class="v2-video-el">
-                <div *ngIf="!selectedFileThumbnail && !(avSegments && avSegments[0]?.segment_screenshot_uri)"
-                  class="v2-video-placeholder">
-                  <mat-icon>play_circle</mat-icon>
+              <div class="v2-hero-video-wrapper">
+                <div class="v2-hero-video">
+                  <video *ngIf="videoPath" [src]="videoPath" autoplay [muted]="true" loop class="v2-video-el"></video>
+                  <ng-container *ngIf="!videoPath">
+                    <img *ngIf="selectedFileThumbnail || (avSegments && avSegments[0]?.segment_screenshot_uri)"
+                      [src]="selectedFileThumbnail || avSegments![0].segment_screenshot_uri" alt="Video thumbnail"
+                      class="v2-video-el">
+                    <div *ngIf="!selectedFileThumbnail && !(avSegments && avSegments[0]?.segment_screenshot_uri)"
+                      class="v2-video-placeholder">
+                      <mat-icon>play_circle</mat-icon>
+                    </div>
+                  </ng-container>
                 </div>
-              </ng-container>
+              </div>
             </div>
 
-            <div class="v2-hero-meta">
-              <div class="v2-card-light v2-meta-card">
-                <div class="v2-meta-row">
-                  <span class="v2-meta-label">CLIENTE</span>
+            <!-- Bottom: Campaign Metadata (Full Width 2-Row Card) -->
+            <div class="v2-card-light v2-meta-card">
+              <!-- Fila 1: Campaña (50%) | Objetivo (50%) -->
+              <div class="v2-meta-row-top">
+                <div class="v2-meta-item v2-meta-item--top">
+                  <div class="v2-meta-header">
+                    <mat-icon class="v2-meta-icon">campaign</mat-icon>
+                    <span class="v2-meta-label">Campaña</span>
+                  </div>
+                  <div class="v2-meta-val-wrap">
+                    <span class="v2-meta-val v2-meta-val--primary">{{ campaignName || '—' }}</span>
+                    <span class="v2-meta-sub" *ngIf="campaignDescription">{{ campaignDescription }}</span>
+                  </div>
+                </div>
+
+                <div class="v2-meta-col-divider" aria-hidden="true"></div>
+
+                <div class="v2-meta-item v2-meta-item--top">
+                  <div class="v2-meta-header">
+                    <mat-icon class="v2-meta-icon">ads_click</mat-icon>
+                    <span class="v2-meta-label">Objetivo</span>
+                  </div>
+                  <div class="v2-meta-val-wrap">
+                    <span class="v2-meta-val v2-meta-val--primary">{{ campaignObjective || '—' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Divisor Horizontal Sutil -->
+              <div class="v2-meta-row-divider" aria-hidden="true"></div>
+
+              <!-- Fila 2: Cliente (20%) | Mercado (20%) | Período (20%) | Formato (20%) | Duración (20%) -->
+              <div class="v2-meta-row-bottom">
+                <div class="v2-meta-item">
+                  <div class="v2-meta-header">
+                    <mat-icon class="v2-meta-icon">business</mat-icon>
+                    <span class="v2-meta-label">Cliente</span>
+                  </div>
                   <span class="v2-meta-val">{{ brandName || '—' }}</span>
                 </div>
-                <div class="v2-meta-row">
-                  <span class="v2-meta-label">CAMPAÑA</span>
-                  <span class="v2-meta-val">{{ campaignName || '—' }}</span>
-                  <span class="v2-meta-sub">{{ campaignDescription }}</span>
-                </div>
-                <div class="v2-meta-row">
-                  <span class="v2-meta-label">MERCADO</span>
+
+                <div class="v2-meta-col-divider" aria-hidden="true"></div>
+
+                <div class="v2-meta-item">
+                  <div class="v2-meta-header">
+                    <mat-icon class="v2-meta-icon">public</mat-icon>
+                    <span class="v2-meta-label">Mercado</span>
+                  </div>
                   <span class="v2-meta-val">{{ country || '—' }}</span>
                 </div>
-                <div class="v2-meta-pair">
-                  <div class="v2-meta-row">
-                    <span class="v2-meta-label">OBJETIVO</span>
-                    <span class="v2-meta-val">{{ campaignObjective || '—' }}</span>
+
+                <div class="v2-meta-col-divider" aria-hidden="true"></div>
+
+                <div class="v2-meta-item">
+                  <div class="v2-meta-header">
+                    <mat-icon class="v2-meta-icon">calendar_today</mat-icon>
+                    <span class="v2-meta-label">Período</span>
                   </div>
-                  <div class="v2-meta-row">
-                    <span class="v2-meta-label">PERÍODO</span>
-                    <span class="v2-meta-val">{{ activationDate || '—' }}</span>
-                  </div>
+                  <span class="v2-meta-val">{{ activationDate || '—' }}</span>
                 </div>
-                <div class="v2-meta-pair">
-                  <div class="v2-meta-row">
-                    <span class="v2-meta-label">FORMATO</span>
-                    <span class="v2-meta-val">Video</span>
+
+                <div class="v2-meta-col-divider" aria-hidden="true"></div>
+
+                <div class="v2-meta-item">
+                  <div class="v2-meta-header">
+                    <mat-icon class="v2-meta-icon">smart_display</mat-icon>
+                    <span class="v2-meta-label">Formato</span>
                   </div>
-                  <div class="v2-meta-row">
-                    <span class="v2-meta-label">DURACIÓN</span>
-                    <span class="v2-meta-val">{{ selectedFileDurationStr || '—' }}</span>
+                  <span class="v2-meta-val">Video</span>
+                </div>
+
+                <div class="v2-meta-col-divider" aria-hidden="true"></div>
+
+                <div class="v2-meta-item">
+                  <div class="v2-meta-header">
+                    <mat-icon class="v2-meta-icon">schedule</mat-icon>
+                    <span class="v2-meta-label">Duración</span>
                   </div>
+                  <span class="v2-meta-val">{{ selectedFileDurationStr || '—' }}</span>
                 </div>
               </div>
             </div>
           </header>
 
-          <!-- ── 01/03  CREATIVE OVERVIEW ────────────────────────── -->
+          <!-- ── 01/04  CREATIVE EVALUATION & INTERPRETATION ────────────────────────── -->
           <section id="report-creative-overview" class="v2-section">
-            <div class="v2-section-head">
-              <div class="v2-section-left">
-                <span class="v2-num">01 <span class="v2-num-total">/ 05</span></span>
-                <div class="v2-section-title-group">
-                  <h2 class="v2-section-title">CREATIVE OVERVIEW</h2>
-                  <p class="v2-section-sub">Entiende tu creatividad</p>
-                </div>
-              </div>
-              <p class="v2-section-right-text">Puntuación general y desglose por las 4 dimensiones<br>para entender el
-                desempeño de tu pieza.</p>
-            </div>
+            <header class="v2-section-head">
+              <span class="v2-num">01 <span class="v2-num-total">/ 04</span></span>
+              <h2 class="v2-section-title">Creative Evaluation &amp; Interpretation</h2>
+              <p class="v2-section-sub">Evaluación ABCD y diagnóstico creativo</p>
+            </header>
 
             <div class="v2-abcd-container v2-abcd-container--mockup">
-              <!-- Left: Big Score -->
-              <div class="v2-card-light v2-abcd-score-card">
-                <div class="v2-abcd-icon-top"><mat-icon>auto_awesome</mat-icon></div>
-                <h3 class="v2-abcd-title">Creative<br>Score</h3>
+              <!-- Left: Big Creative Score (Dominant Card with Gradient Border) -->
+              <div class="v2-abcd-score-card">
+                <div class="v2-score-header">
+                  <div class="v2-score-icon">
+                    <mat-icon>auto_awesome</mat-icon>
+                  </div>
+                  <h3 class="v2-score-title">Creative Score</h3>
+                </div>
+
                 <div class="v2-circle-score">
                   <svg viewBox="0 0 36 36" class="v2-svg-circle">
+                    <defs>
+                      <linearGradient id="scoreGrad115" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#AEF366" />
+                        <stop offset="50%" stop-color="#5967F6" />
+                        <stop offset="100%" stop-color="#7D72E8" />
+                      </linearGradient>
+                    </defs>
                     <path class="v2-circle-bg"
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                     <path class="v2-circle-fg" pathLength="100"
+                      stroke="url(#scoreGrad115)"
                       [attr.stroke-dasharray]="getAbcdScorePercentage() + ', 100'"
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                   </svg>
@@ -1500,7 +1166,11 @@ limitations under the License.
                     <span class="v2-circle-max" *ngIf="getAbcdScorePercentage()">/ 100</span>
                   </div>
                 </div>
-                <button class="v2-abcd-btn">Ver más sobre ABCD <mat-icon>arrow_forward</mat-icon></button>
+
+                <button type="button" class="v2-abcd-btn" (click)="openAbcdModal()">
+                  <span>Ver más sobre ABCD</span>
+                  <mat-icon>arrow_forward</mat-icon>
+                </button>
               </div>
 
               <!-- Right: 4 Dimension Cards (A, B, C, D) -->
@@ -1574,131 +1244,198 @@ limitations under the License.
               </div>
             </div>
 
-
-          </section>
-
-
-
-          <!-- ── 02/03  CONTEXTUAL CREATIVE (GEO) ────────────────── -->
-          <section id="report-contextual-creative" class="v2-section" *ngIf="compassData?.geo_intelligence">
-            <div class="v2-section-head">
-              <div class="v2-section-left">
-                <span class="v2-num">02 <span class="v2-num-total">/ 05</span></span>
-                <div class="v2-section-title-group">
-                  <h2 class="v2-section-title">CONTEXTUAL CREATIVE</h2>
-                  <p class="v2-section-sub">Conecta tu creatividad con el territorio</p>
+            <!-- Creative Interpretation Block (Diagnóstico e Insights Rediseñado) -->
+            <div class="v2-diagnostico-card" *ngIf="ciData?.evaluacion_creativa?.insight_principal || ciData?.evaluacion_creativa?.descripcion || ciData?.evaluacion_creativa?.strengths?.length || ciData?.evaluacion_creativa?.weaknesses?.length">
+              <div class="v2-diag-header">
+                <div class="v2-diag-icon">
+                  <mat-icon>auto_awesome</mat-icon>
                 </div>
-              </div>
-              <p class="v2-section-right-text">El creativo se analiza en el contexto real de activación para identificar
-                oportunidades por territorio.</p>
-            </div>
-
-            <!-- Lectura general -->
-            <div class="v2-lectura-card" *ngIf="compassData?.geo_intelligence?.resumen_ejecutivo">
-              <div class="v2-lectura-left">
-                <div class="v2-lectura-icon"><mat-icon>auto_awesome</mat-icon></div>
-                <div class="v2-lectura-text">
-                  <h3>Lectura general</h3>
-                  <p>{{ compassData?.geo_intelligence?.resumen_ejecutivo }}</p>
-                </div>
-              </div>
-              <div class="v2-lectura-images" *ngIf="avSegments && avSegments.length >= 3">
-                <img [src]="avSegments[0].segment_screenshot_uri" alt="scene 1" />
-                <img [src]="avSegments[1].segment_screenshot_uri" alt="scene 2" />
-                <img [src]="avSegments[2].segment_screenshot_uri" alt="scene 3" />
-              </div>
-            </div>
-
-            <!-- Contexto territorial -->
-            <div
-              style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 0 16px;">
-              <div style="display: flex; align-items: center; gap: 16px;">
-                <div class="v2-lectura-icon" style="background: #e4f9b8; color: #4b6b15; width: 48px; height: 48px;">
-                  <mat-icon>map</mat-icon>
-                </div>
-                <div>
-                  <h3 style="font-size: 20px; font-weight: 700; margin: 0 0 4px 0; color: var(--v2-text-main);">Contexto
-                    territorial</h3>
-                  <p style="margin: 0; color: var(--v2-text-secondary); font-size: 14px;">Explora los territorios donde
-                    vivirá tu creatividad</p>
-                </div>
-              </div>
-              <p
-                style="color: var(--v2-text-secondary); font-size: 14px; max-width: 450px; text-align: right; margin: 0;">
-                Agrupamos los territorios en función de sus características, comportamientos y oportunidades clave para
-                la campaña.
-              </p>
-            </div>
-
-            <!-- Big Dark Map Wrapper -->
-            <div class="v2-dark-map-wrapper">
-              <!-- Deck.GL / MapLibre container -->
-              <div id="map-container" class="ca-deckgl-container"
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
-                <div id="deck-tooltip" class="ca-deck-tooltip"></div>
+                <h3 class="v2-diag-title">Diagnóstico e Interpretación Creativa</h3>
               </div>
 
-              <div class="v2-map-legend"
-                style="z-index: 2; position: absolute; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <div
-                    style="width: 20px; height: 20px; border-radius: 50%; background: rgba(182, 255, 0, 0.22); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
-                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
+              <!-- Fila Superior: Interpretación y Lectura (100% ancho) -->
+              <div class="v2-diag-top-section" *ngIf="ciData?.evaluacion_creativa?.insight_principal || ciData?.evaluacion_creativa?.descripcion">
+                <span class="v2-diag-tag">INTERPRETACIÓN Y LECTURA</span>
+                <p class="v2-diag-lead" *ngIf="ciData?.evaluacion_creativa?.insight_principal">
+                  {{ ciData?.evaluacion_creativa?.insight_principal }}
+                </p>
+                <p class="v2-diag-desc" *ngIf="ciData?.evaluacion_creativa?.descripcion">
+                  {{ ciData?.evaluacion_creativa?.descripcion }}
+                </p>
+              </div>
+
+              <!-- Divisor Horizontal Sutil -->
+              <div class="v2-diag-row-divider" *ngIf="(ciData?.evaluacion_creativa?.insight_principal || ciData?.evaluacion_creativa?.descripcion) && (ciData?.evaluacion_creativa?.strengths?.length || ciData?.evaluacion_creativa?.weaknesses?.length)" aria-hidden="true"></div>
+
+              <!-- Fila Inferior: Fortalezas (50%) | Oportunidades (50%) -->
+              <div class="v2-diag-sw-row" *ngIf="ciData?.evaluacion_creativa?.strengths?.length || ciData?.evaluacion_creativa?.weaknesses?.length">
+                <!-- Fortalezas 50% -->
+                <div class="v2-sw-col v2-sw-col--strengths" *ngIf="ciData?.evaluacion_creativa?.strengths?.length">
+                  <div class="v2-sw-header">
+                    <span class="v2-sw-icon v2-sw-icon--green"><mat-icon>check_circle</mat-icon></span>
+                    <span class="v2-sw-title">FORTALEZAS</span>
                   </div>
-                  <span>GeoKey</span>
+                  <ul class="v2-sw-list">
+                    <li *ngFor="let strength of ciData?.evaluacion_creativa?.strengths">
+                      {{ strength }}
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- Separador Vertical Sutil -->
+                <div class="v2-diag-col-divider" *ngIf="ciData?.evaluacion_creativa?.strengths?.length && ciData?.evaluacion_creativa?.weaknesses?.length" aria-hidden="true"></div>
+
+                <!-- Oportunidades 50% -->
+                <div class="v2-sw-col v2-sw-col--opps" *ngIf="ciData?.evaluacion_creativa?.weaknesses?.length">
+                  <div class="v2-sw-header">
+                    <span class="v2-sw-icon v2-sw-icon--blue"><mat-icon>trending_up</mat-icon></span>
+                    <span class="v2-sw-title">OPORTUNIDADES DE MEJORA</span>
+                  </div>
+                  <ul class="v2-sw-list">
+                    <li *ngFor="let weakness of ciData?.evaluacion_creativa?.weaknesses">
+                      {{ weakness }}
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
           </section>
 
-          <!-- ── 03/05  TERRITORIAL OPPORTUNITIES ────────────────── -->
-          <section id="report-territorial-opportunities" class="v2-section"
-            *ngIf="compassData?.geo_intelligence?.territorios?.length">
-            <div class="v2-section-head">
-              <div class="v2-section-left">
-                <span class="v2-num">03 <span class="v2-num-total">/ 05</span></span>
-                <div class="v2-section-title-group">
-                  <h2 class="v2-section-title">TERRITORIAL OPPORTUNITIES</h2>
-                  <p class="v2-section-sub">Explora oportunidades por territorio</p>
+          <!-- ── 02/04  TERRITORIAL CONTEXT & CREATIVE OPPORTUNITIES ────────────────── -->
+          <section id="report-territorial-context" class="v2-section">
+            <header class="v2-section-head">
+              <span class="v2-num">02 <span class="v2-num-total">/ 04</span></span>
+              <h2 class="v2-section-title">Territorial Context &amp; Creative Opportunities</h2>
+              <p class="v2-section-sub">Del contexto territorial a la oportunidad creativa.</p>
+            </header>
+
+            @if (ciData?.geo_intelligence) {
+              <!-- Lectura territorial -->
+              <div class="v2-lectura-card" *ngIf="ciData?.geo_intelligence?.resumen_ejecutivo">
+                <div class="v2-lectura-left">
+                  <div class="v2-lectura-icon"><mat-icon>auto_awesome</mat-icon></div>
+                  <div class="v2-lectura-text">
+                    <h3 class="v2-lectura-title">Lectura territorial</h3>
+                    <p class="v2-lectura-body">{{ ciData?.geo_intelligence?.resumen_ejecutivo }}</p>
+                  </div>
+                </div>
+                <div class="v2-lectura-images" *ngIf="avSegments && avSegments.length >= 3">
+                  <div class="v2-lectura-img-wrap" *ngFor="let seg of avSegments.slice(0, 3); let sIdx = index">
+                    <img [src]="seg.segment_screenshot_uri" [alt]="'Frame de evidencia ' + (sIdx + 1)" />
+                  </div>
                 </div>
               </div>
-              <p class="v2-section-right-text">Descubre cómo las señales de tu video se conectan con el contexto de cada
-                territorio y qué oportunidades de personalización existen.</p>
-            </div>
 
-            <div class="v2-territories-grid">
-              <article class="v2-territory-card"
-                *ngFor="let ter of compassData?.geo_intelligence?.territorios; let idx = index">
-                <div [id]="'card-map-' + idx" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; border-radius: 20px; overflow: hidden; pointer-events: none;"></div>
-                <div class="v2-territory-scrim" aria-hidden="true" style="z-index: 1;"></div>
-                <div class="v2-territory-card-content" style="position: relative; z-index: 2;">
-                  <span class="v2-territory-idx">0{{ idx + 1 }}</span>
-                  <div class="v2-territory-body">
-                    <h4 class="v2-territory-title">{{ getTerritoryName(ter) }}</h4>
-                    <p class="v2-territory-geokeys">{{ getTerritorySubtitle(ter) }}</p>
-                    <div class="v2-territory-stats">
-                      <span class="v2-territory-stat">
-                        <mat-icon aria-hidden="true">lightbulb</mat-icon>
-                        {{ ter.oportunidades?.length || ter.oportunidades_creativas?.length || 0 }} oportunidades
-                      </span>
-                      <span class="v2-territory-stat">
-                        <mat-icon aria-hidden="true">movie</mat-icon>
-                        {{ getTerritoryAdaptationCount(ter) }} adaptaciones
-                      </span>
+              <!-- Contexto territorial -->
+              <div class="v2-block-head">
+                <div class="v2-block-head-left">
+                  <div class="v2-block-icon">
+                    <mat-icon>public</mat-icon>
+                  </div>
+                  <div>
+                    <h3 class="v2-block-title">Contexto territorial</h3>
+                    <p class="v2-block-desc">Explora cómo el contexto territorial puede generar relevancia para tu creatividad.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Big Dark Map Wrapper -->
+              <div class="v2-dark-map-wrapper">
+                <!-- Deck.GL / MapLibre container -->
+                <div id="map-container" class="ca-deckgl-container"
+                  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
+                  <div id="deck-tooltip" class="ca-deck-tooltip"></div>
+                </div>
+
+                <div class="v2-map-legend"
+                  style="z-index: 2; position: absolute; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div
+                      style="width: 20px; height: 20px; border-radius: 50%; background: rgba(174, 243, 102, 0.22); border: 2px solid #AEF366; display: flex; align-items: center; justify-content: center;">
+                      <div style="width: 8px; height: 8px; border-radius: 50%; background: #AEF366;"></div>
+                    </div>
+                    <span>GeoKey</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Territorial Opportunities Grid -->
+              <div class="v2-territories-section" *ngIf="ciData?.geo_intelligence?.territorios?.length">
+                <div class="v2-block-head">
+                  <div class="v2-block-head-left">
+                    <div class="v2-block-icon">
+                      <mat-icon>lightbulb</mat-icon>
+                    </div>
+                    <div>
+                      <h3 class="v2-block-title">Oportunidades por territorio</h3>
+                      <p class="v2-block-desc">Explora los hallazgos, insights y oportunidades creativas identificados en cada territorio.</p>
                     </div>
                   </div>
-                  <button type="button" class="v2-territory-btn" (click)="openTerritoryModal(idx)"
-                    [attr.aria-label]="'Explorar territorio ' + getTerritoryName(ter)">
-                    <mat-icon aria-hidden="true">arrow_forward</mat-icon>
-                  </button>
+
+                  <!-- Discrete Carousel Navigation -->
+                  <div class="v2-territory-carousel-nav" *ngIf="(ciData?.geo_intelligence?.territorios?.length || 0) > 1" aria-label="Navegación de territorios">
+                    <button type="button" class="v2-carousel-btn" (click)="scrollTerritories(-1)" [disabled]="isTerritoryAtStart" aria-label="Territorio anterior">
+                      <mat-icon aria-hidden="true">arrow_back</mat-icon>
+                    </button>
+                    <span class="v2-carousel-counter" aria-live="polite">{{ currentTerritoryCounterLabel }}</span>
+                    <button type="button" class="v2-carousel-btn" (click)="scrollTerritories(1)" [disabled]="isTerritoryAtEnd" aria-label="Siguiente territorio">
+                      <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+                    </button>
+                  </div>
                 </div>
-              </article>
-            </div>
+
+                <div #territoriesTrack class="v2-territories-grid"
+                  [class.v2-territories-grid--count-1]="(ciData?.geo_intelligence?.territorios?.length || 0) === 1"
+                  [class.v2-territories-grid--count-2]="(ciData?.geo_intelligence?.territorios?.length || 0) === 2"
+                  [class.v2-territories-grid--count-3]="(ciData?.geo_intelligence?.territorios?.length || 0) === 3"
+                  (scroll)="onTerritoriesScroll()" tabindex="0" (keydown)="onTerritoriesKeydown($event)" aria-label="Carrusel de territorios">
+                  <article class="v2-territory-card"
+                    *ngFor="let ter of ciData?.geo_intelligence?.territorios; let idx = index">
+                    <div [id]="'card-map-' + idx" class="v2-territory-map-bg"></div>
+                    <div class="v2-territory-scrim" aria-hidden="true"></div>
+                    <div class="v2-territory-card-content">
+                      <div class="v2-territory-top">
+                        <span class="v2-territory-idx">0{{ idx + 1 }}</span>
+                      </div>
+                      <h4 class="v2-territory-title">{{ getTerritoryName(ter) }}</h4>
+                      <p class="v2-territory-geokeys" *ngIf="getTerritorySubtitle(ter)">{{ getTerritorySubtitle(ter) }}</p>
+                      
+                      <div class="v2-territory-metrics-row">
+                        <div class="v2-territory-metric">
+                          <mat-icon class="v2-metric-icon" aria-hidden="true">auto_awesome</mat-icon>
+                          <span class="v2-metric-num">{{ ter.oportunidades?.length || ter.oportunidades_creativas?.length || 0 }}</span>
+                          <span class="v2-metric-label">oportunidades</span>
+                        </div>
+                        <div class="v2-metric-divider" aria-hidden="true"></div>
+                        <div class="v2-territory-metric">
+                          <mat-icon class="v2-metric-icon" aria-hidden="true">tune</mat-icon>
+                          <span class="v2-metric-num">{{ getTerritoryAdaptationCount(ter) }}</span>
+                          <span class="v2-metric-label">adaptaciones</span>
+                        </div>
+                      </div>
+
+                      <button type="button" class="v2-territory-btn" (click)="openTerritoryModal(idx)"
+                        [attr.aria-label]="'Ver oportunidades de ' + getTerritoryName(ter)">
+                        <span>Ver oportunidades</span>
+                        <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+                      </button>
+                    </div>
+                  </article>
+                </div>
+              </div>
+            } @else {
+              <!-- Estado informativo cuando no hay datos territoriales -->
+              <div class="v2-section-state">
+                <mat-icon aria-hidden="true" style="font-size: 32px; width: 32px; height: 32px; color: var(--ci-accent-blue, #5967F6);">info</mat-icon>
+                <div>
+                  <strong style="display: block; font-size: 15px; color: var(--ci-navy, #000050); margin-bottom: 4px;">Contexto territorial</strong>
+                  <p style="margin: 0; font-size: 13px; color: var(--ci-text-secondary, rgba(0, 0, 80, 0.65)); line-height: 1.5;">El análisis territorial estará disponible cuando se incorpore el contexto geográfico de la campaña.</p>
+                </div>
+              </div>
+            }
           </section>
 
-
-
-          <!-- ── 04/05  CREATIVE SERVICES ────────────────────────────── -->
+          <!-- ── 03/04  CREATIVE SOLUTIONS ────────────────────────────── -->
           <app-creative-services-section
             id="report-creative-services"
             [section]="creativeServicesSection">
@@ -1710,6 +1447,9 @@ limitations under the License.
             [section]="testingFrameworkSection">
           </app-testing-framework-section>
 
+        
+            </main>
+          </div>
         </div><!-- /v2-report -->
 
       </mat-step>
@@ -1940,7 +1680,7 @@ limitations under the License.
         <button class="v2-tm-back-btn" (click)="closeTerritoryModal()"
           style="flex-shrink: 0; background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; color: #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"><mat-icon>arrow_back</mat-icon></button>
         <div class="v2-tm-tabs-scroll" style="display: flex; gap: 12px; overflow-x: auto; padding-right: 20px;">
-          <button type="button" class="v2-tm-tab" *ngFor="let ter of compassData?.geo_intelligence?.territorios; let idx = index"
+          <button type="button" class="v2-tm-tab" *ngFor="let ter of ciData?.geo_intelligence?.territorios; let idx = index"
             [class.active]="selectedTerritoryIndex === idx" [attr.aria-pressed]="selectedTerritoryIndex === idx"
             (click)="selectTerritory(idx)">
             <span class="v2-tm-tab-num">{{ (idx + 1) < 10 ? '0' + (idx + 1) : (idx + 1) }}</span>
@@ -1954,7 +1694,7 @@ limitations under the License.
             style="background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><mat-icon
               style="font-size: 20px; width: 20px; height: 20px;">chevron_left</mat-icon></button>
           <button type="button" aria-label="Territorio siguiente"
-            [disabled]="selectedTerritoryIndex >= (compassData?.geo_intelligence?.territorios?.length ?? 0) - 1"
+            [disabled]="selectedTerritoryIndex >= (ciData?.geo_intelligence?.territorios?.length ?? 0) - 1"
             (click)="selectTerritory(selectedTerritoryIndex + 1)"
             style="background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><mat-icon
               style="font-size: 20px; width: 20px; height: 20px;">chevron_right</mat-icon></button>
@@ -1963,27 +1703,19 @@ limitations under the License.
 
       <!-- Main Body (Split Left/Right) -->
       <div class="v2-tm-body" style="display: flex; flex: 1; overflow: hidden;"
-        *ngIf="compassData?.geo_intelligence?.territorios?.[selectedTerritoryIndex] as activeTerritory">
+        *ngIf="ciData?.geo_intelligence?.territorios?.[selectedTerritoryIndex] as activeTerritory">
 
         <!-- LEFT COLUMN -->
         <div class="v2-tm-left"
           style="width: 560px; flex-shrink: 0; padding: 32px; border-right: 1px solid rgba(255,255,255,0.06); overflow-y: auto; display: flex; flex-direction: column;">
 
-          <div style="color: #B6FF00; font-size: 13px; font-weight: 700; letter-spacing: 1px; margin-bottom: 24px;">
+          <div style="color: #AEF366; font-size: 13px; font-weight: 700; letter-spacing: 1px; margin-bottom: 24px;">
             TERRITORIO 0{{ selectedTerritoryIndex + 1 }}</div>
 
           <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 24px;">
-            <div style="width: 72px; height: 72px; flex-shrink: 0; position: relative;">
-              <div
-                style="width: 100%; height: 100%; background: #1A1E1C; border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.08);">
-                <mat-icon style="font-size: 36px; width: 36px; height: 36px; color: #E2E8F0;">extension</mat-icon>
-              </div>
-              <div style="position: absolute; bottom: -12px; left: 8px; width: 36px; height: 24px;">
-                <svg viewBox="0 0 100 50" width="36" height="24">
-                  <path d="M10,25 Q25,5 50,25 T90,25" fill="none" stroke="#B6FF00" stroke-width="12"
-                    stroke-linecap="round" />
-                </svg>
-              </div>
+            <div class="v2-tm-identity-icon"
+              style="width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #AEF366 0%, #5967F6 50%, #7D72E8 100%); display: grid; place-items: center; flex-shrink: 0; box-shadow: 0 4px 16px rgba(89, 103, 246, 0.3);">
+              <mat-icon style="font-size: 32px; width: 32px; height: 32px; color: #000050;">auto_awesome</mat-icon>
             </div>
             <h2 style="font-size: 36px; font-weight: 800; line-height: 1.1; margin: 0; color: #fff;"
               [innerHTML]="(activeTerritory.nombre || activeTerritory.demografia?.nombre || 'Territorio ' + (selectedTerritoryIndex + 1)).replace(' + ', '<br>+ ')"></h2>
@@ -2008,22 +1740,22 @@ limitations under the License.
           </div>
 
           <div class="v2-tm-left-panel" *ngIf="activeTerritoryTab === 'adaptations'">
-            <h3>{{ territoryAdaptations.length }} adaptaciones sugeridas</h3>
-            <p>A partir de las oportunidades identificadas en este territorio.</p>
+            <h3>{{ territoryAdaptations.length }} rutas de adaptación recomendadas</h3>
+            <p>Soluciones creativas y formatos sugeridos a partir de las oportunidades del territorio.</p>
           </div>
 
           <div *ngIf="activeTerritoryTab === 'context'"
-            style="background: #171B19; border: 1px solid #2A302D; border-radius: 20px; padding: 32px 24px; display: flex; flex-direction: column; height: 1200px;">
+            style="background: #0B0D3D; border: 1px solid rgba(89, 103, 246, 0.2); border-radius: 20px; padding: 32px 24px; display: flex; flex-direction: column; height: 1200px;">
             <h3 style="color: #fff; font-size: 18px; margin: 0 0 16px 0; font-weight: 700;">Resumen del territorio</h3>
             <p style="color: #A7AAA5; font-size: 14px; line-height: 1.6; margin: 0 0 40px 0;">
-              {{ activeTerritory.resumen || activeTerritory.cultura_local?.perfil_consumidor || 'Ciudad de México es un territorio diverso, dinámico y altamente conectado, donde la salud y el bienestar forman parte de un estilo de vida activo y aspiracional.' }}
+              {{ activeTerritory.resumen || activeTerritory.cultura_local?.perfil_consumidor || 'Territorio con dinámicas activas de consumo y movilidad conectadas al bienestar.' }}
             </p>
 
             <!-- Dynamic Characteristics (V3) -->
             <div *ngIf="activeTerritory.caracteristicas_clave?.length; else oldContext" style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px 24px;">
               <div *ngFor="let caracteristica of activeTerritory.caracteristicas_clave" style="display: flex;  gap: 12px;">
-                <div style="width: 48px; height: 48px; border-radius: 50%; background: #1A1E1C; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                  <mat-icon style="color: #E2E8F0; font-size: 24px; width: 24px; height: 24px;">{{ caracteristica.icono || 'info' }}</mat-icon>
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: #11104A; border: 1px solid rgba(89, 103, 246, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <mat-icon style="color: #AEF366; font-size: 24px; width: 24px; height: 24px;">{{ caracteristica.icono || 'info' }}</mat-icon>
                 </div>
                 <div>
                   <div style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 4px;">{{ caracteristica.titulo }}</div>
@@ -2036,8 +1768,8 @@ limitations under the License.
             <ng-template #oldContext>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px 24px;">
                 <div style="display: flex;  gap: 12px;">
-                  <div style="width: 48px; height: 48px; border-radius: 50%; background: #1A1E1C; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <mat-icon style="color: #E2E8F0; font-size: 24px; width: 24px; height: 24px;">location_city</mat-icon>
+                  <div style="width: 48px; height: 48px; border-radius: 50%; background: #11104A; border: 1px solid rgba(89, 103, 246, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <mat-icon style="color: #AEF366; font-size: 24px; width: 24px; height: 24px;">location_city</mat-icon>
                   </div>
                   <div>
                     <div style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 4px;">Alta densidad urbana</div>
@@ -2045,8 +1777,8 @@ limitations under the License.
                   </div>
                 </div>
                 <div style="display: flex;  gap: 12px;">
-                  <div style="width: 48px; height: 48px; border-radius: 50%; background: #1A1E1C; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <mat-icon style="color: #E2E8F0; font-size: 24px; width: 24px; height: 24px;">directions_run</mat-icon>
+                  <div style="width: 48px; height: 48px; border-radius: 50%; background: #11104A; border: 1px solid rgba(89, 103, 246, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <mat-icon style="color: #AEF366; font-size: 24px; width: 24px; height: 24px;">directions_run</mat-icon>
                   </div>
                   <div>
                     <div style="color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 4px;">Estilo de vida activo</div>
@@ -2061,37 +1793,37 @@ limitations under the License.
 
         <!-- RIGHT COLUMN -->
         <div class="v2-tm-right"
-          style="flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #0A0D0B;">
+          style="flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #05052F;">
 
           <!-- Right Column Header (Tabs & Action Buttons) -->
           <div
-            style="display: flex; justify-content: space-between; align-items: center; padding: 24px 40px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            style="display: flex; justify-content: space-between; align-items: center; padding: 24px 40px; border-bottom: 1px solid rgba(89, 103, 246, 0.15);">
             <!-- Tabs -->
             <div
-              style="display: flex; gap: 12px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.05);">
+              style="display: flex; gap: 12px; background: rgba(11, 13, 61, 0.8); padding: 4px; border-radius: 100px; border: 1px solid rgba(89, 103, 246, 0.25);">
               <button class="v2-tm-sec-tab" [class.active]="activeTerritoryTab === 'context'"
                 (click)="setActiveTerritoryTab('context')"
                 style="padding: 10px 32px; font-size: 15px; border-radius: 99px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;"
-                [style.background]="activeTerritoryTab === 'context' ? '#B6FF00' : 'transparent'"
-                [style.color]="activeTerritoryTab === 'context' ? '#111' : '#A7AAA5'">Contexto</button>
+                [style.background]="activeTerritoryTab === 'context' ? '#AEF366' : 'transparent'"
+                [style.color]="activeTerritoryTab === 'context' ? '#000050' : '#A7AAA5'">Contexto</button>
               <button class="v2-tm-sec-tab" [class.active]="activeTerritoryTab === 'opportunities'"
                 (click)="setActiveTerritoryTab('opportunities')"
                 style="padding: 10px 32px; font-size: 15px; border-radius: 99px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;"
-                [style.background]="activeTerritoryTab === 'opportunities' ? '#B6FF00' : 'transparent'"
-                [style.color]="activeTerritoryTab === 'opportunities' ? '#111' : '#A7AAA5'">Oportunidades</button>
+                [style.background]="activeTerritoryTab === 'opportunities' ? '#AEF366' : 'transparent'"
+                [style.color]="activeTerritoryTab === 'opportunities' ? '#000050' : '#A7AAA5'">Oportunidades</button>
               <button class="v2-tm-sec-tab" [class.active]="activeTerritoryTab === 'adaptations'"
                 (click)="setActiveTerritoryTab('adaptations')"
                 style="padding: 10px 32px; font-size: 15px; border-radius: 99px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;"
-                [style.background]="activeTerritoryTab === 'adaptations' ? '#B6FF00' : 'transparent'"
-                [style.color]="activeTerritoryTab === 'adaptations' ? '#111' : '#A7AAA5'">Adaptaciones</button>
+                [style.background]="activeTerritoryTab === 'adaptations' ? '#AEF366' : 'transparent'"
+                [style.color]="activeTerritoryTab === 'adaptations' ? '#000050' : '#A7AAA5'">Adaptaciones</button>
             </div>
             <!-- Action Buttons -->
             <div style="display: flex; align-items: center; gap: 16px;">
               <button class="v2-tm-download-btn"
-                style="background: transparent; color: #F5F5F2; border: 1px solid rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 99px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer;"><mat-icon
+                style="background: transparent; color: #F5F5F2; border: 1px solid rgba(89, 103, 246, 0.3); padding: 10px 20px; border-radius: 99px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer;"><mat-icon
                   style="font-size: 20px; width: 20px; height: 20px;">download</mat-icon> Descargar reporte</button>
               <button class="v2-tm-close-btn" (click)="closeTerritoryModal()"
-                style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;"><mat-icon
+                style="background: rgba(11, 13, 61, 0.8); color: #fff; border: 1px solid rgba(89, 103, 246, 0.3); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;"><mat-icon
                   style="font-size: 24px;">close</mat-icon></button>
             </div>
           </div>
@@ -2103,116 +1835,32 @@ limitations under the License.
             <div *ngIf="activeTerritoryTab === 'context'"
               style="flex: 1; display: grid; grid-template-columns: 1fr 340px; overflow: hidden;">
               <!-- Map: fills full cell, no border-radius on edges touching the column -->
-              <div style="position: relative; overflow: hidden; background: #0D1110;">
+              <div style="position: relative; overflow: hidden; background: #05052F;">
                 <div id="modal-map-container" class="ca-deckgl-container"
                   style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
                   <div id="modal-deck-tooltip" class="ca-deck-tooltip"></div>
-                </div>
-                <!-- Map Legend -->
-                <div
-                  style="z-index: 2; position: absolute; top: 24px; right: 24px; display: flex; flex-direction: column; gap: 12px; background: rgba(23, 27, 25, 0.9); padding: 20px 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px);">
-                  <h4 style="color: #fff; font-size: 14px; font-weight: 700; margin: 0 0 8px 0;">GeoKeys principales
-                  </h4>
-                  <!-- Dynamic GeoKeys -->
-                  <ng-container *ngIf="activeTerritory.temas_mapa?.length; else oldLegend">
-                    <div *ngFor="let tema of activeTerritory.temas_mapa" style="display: flex; align-items: center; gap: 12px;">
-                      <div style="width: 16px; height: 16px; border-radius: 50%; background: rgba(182,255,0,0.2); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
-                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
-                      </div>
-                      <span style="color: #E2E8F0; font-size: 14px;">{{ tema }}</span>
-                    </div>
-                  </ng-container>
-
-                  <!-- Fallback GeoKeys -->
-                  <ng-template #oldLegend>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                      <div style="width: 16px; height: 16px; border-radius: 50%; background: rgba(182,255,0,0.2); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
-                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
-                      </div>
-                      <span style="color: #E2E8F0; font-size: 14px;">Bienestar</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                      <div style="width: 16px; height: 16px; border-radius: 50%; background: rgba(182,255,0,0.2); border: 2px solid #B6FF00; display: flex; align-items: center; justify-content: center;">
-                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #B6FF00;"></div>
-                      </div>
-                      <span style="color: #E2E8F0; font-size: 14px;">Vida en movimiento</span>
-                    </div>
-                  </ng-template>
                 </div>
               </div>
 
               <!-- Key Data -->
               <div
-                style="display: flex; flex-direction: column; justify-content: space-between; padding: 24px 32px; overflow-y: auto; border-left: 1px solid rgba(255,255,255,0.06);">
+                style="display: flex; flex-direction: column; justify-content: space-between; padding: 24px 32px; overflow-y: auto; border-left: 1px solid rgba(89, 103, 246, 0.15);">
                 <h3 style="margin: 0; color: #fff; font-size: 22px; font-weight: 700; line-height: 1.3;">Datos clave
                   del<br>territorio</h3>
 
-                <div style="display: flex; align-items: center; gap: 16px;">
-                  <div
-                    style="width: 64px; height: 64px; border-radius: 50%; background: #1A1E1C; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <mat-icon style="color: #A7AAA5; font-size: 28px; width: 28px; height: 28px;">public</mat-icon>
-                  </div>
-                  <div>
-                    <div style="color: #fff; font-size: 32px; font-weight: 700; line-height: 1.2;">{{
-                      activeTerritory.demografia?.audiencia_estimada || activeTerritory.demografia?.geo_keys_incluidas || 'N/A' }}</div>
-                    <div style="color: #E2E8F0; font-size: 16px; margin-top: 6px;">Audiencia estimada</div>
-                    <div style="color: #A7AAA5; font-size: 14px; margin-top: 2px;">Área metropolitana</div>
-                  </div>
-                </div>
-
                 <!-- Dynamic Datos Clave from Investigation -->
-                <ng-container *ngIf="compassData?.geo_intelligence?.datos_clave?.length; else oldKeyData">
-                  <div *ngFor="let dato of compassData?.geo_intelligence?.datos_clave" style="display: flex; align-items: center; gap: 16px;">
-                    <div style="width: 64px; height: 64px; border-radius: 50%; background: #1A1E1C; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <mat-icon style="color: #A7AAA5; font-size: 28px; width: 28px; height: 28px;">{{ dato.icono || 'bar_chart' }}</mat-icon>
+                <ng-container *ngIf="ciData?.geo_intelligence?.datos_clave?.length">
+                  <div *ngFor="let dato of ciData?.geo_intelligence?.datos_clave" style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: #11104A; border: 1px solid rgba(89, 103, 246, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <mat-icon style="color: #AEF366; font-size: 28px; width: 28px; height: 28px;">{{ dato.icono || 'bar_chart' }}</mat-icon>
                     </div>
                     <div>
-                      <div style="color: #fff; font-size: 32px; font-weight: 700; line-height: 1.2;">{{ dato.valor }}</div>
+                      <div style="color: #7D72E8; font-size: 32px; font-weight: 700; line-height: 1.2;">{{ dato.valor }}</div>
                       <div style="color: #E2E8F0; font-size: 16px; margin-top: 6px;">{{ dato.titulo }}</div>
-                      <div style="color: #A7AAA5; font-size: 14px; margin-top: 2px;">{{ dato.subtitulo }}</div>
+                      <div style="color: #A5B4FC; font-size: 14px; margin-top: 2px;">{{ dato.subtitulo }}</div>
                     </div>
                   </div>
                 </ng-container>
-
-                <!-- Fallback Hardcoded Data -->
-                <ng-template #oldKeyData>
-                  <div style="display: flex; align-items: center; gap: 16px;">
-                    <div
-                      style="width: 64px; height: 64px; border-radius: 50%; background: #1A1E1C; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <mat-icon style="color: #A7AAA5; font-size: 28px; width: 28px; height: 28px;">bar_chart</mat-icon>
-                    </div>
-                    <div>
-                      <div style="color: #fff; font-size: 32px; font-weight: 700; line-height: 1.2;">92%</div>
-                      <div style="color: #E2E8F0; font-size: 16px; margin-top: 6px;">Conexión digital</div>
-                      <div style="color: #A7AAA5; font-size: 14px; margin-top: 2px;">Usuarios de internet</div>
-                    </div>
-                  </div>
-  
-                  <div style="display: flex; align-items: center; gap: 16px;">
-                    <div
-                      style="width: 64px; height: 64px; border-radius: 50%; background: #1A1E1C; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <mat-icon
-                        style="color: #A7AAA5; font-size: 28px; width: 28px; height: 28px;">play_circle_outline</mat-icon>
-                    </div>
-                    <div>
-                      <div style="color: #fff; font-size: 32px; font-weight: 700; line-height: 1.2;">4.2 h</div>
-                      <div style="color: #E2E8F0; font-size: 16px; margin-top: 6px;">Consumo de video diario</div>
-                      <div style="color: #A7AAA5; font-size: 14px; margin-top: 2px;">Promedio por usuario</div>
-                    </div>
-                  </div>
-  
-                  <div style="display: flex; align-items: center; gap: 16px;">
-                    <div
-                      style="width: 64px; height: 64px; border-radius: 50%; background: #1A1E1C; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <mat-icon style="color: #A7AAA5; font-size: 28px; width: 28px; height: 28px;">groups</mat-icon>
-                    </div>
-                    <div>
-                      <div style="color: #fff; font-size: 32px; font-weight: 700; line-height: 1.2;">68%</div>
-                      <div style="color: #E2E8F0; font-size: 16px; margin-top: 6px;">Interés en rutinas</div>
-                      <div style="color: #A7AAA5; font-size: 14px; margin-top: 2px;">Cuidado personal</div>
-                    </div>
-                  </div>
-                </ng-template>
               </div>
             </div>
 
@@ -2225,8 +1873,8 @@ limitations under the License.
                   (click)="selectOpportunity(opportunity.index)">
                   <span class="v2-tm-accordion-number">{{ opportunity.numberLabel }}</span>
                   <strong>{{ opportunity.title }}</strong>
-                  <div style="background: rgba(182, 255, 0, 0.1); color: #B6FF00; padding: 4px 12px; border-radius: 20px; font-size: 12px; white-space: nowrap;">
-                    {{ opportunity.adaptationCount }} adaptación(es)
+                  <div style="background: rgba(174, 243, 102, 0.15); color: #AEF366; padding: 4px 12px; border-radius: 20px; font-size: 12px; white-space: nowrap;">
+                    {{ opportunity.adaptationCount }} ruta(s) de adaptación
                   </div>
                   <span class="v2-tm-relevance" [class.v2-tm-relevance-high]="opportunity.relevanceLabel === 'Alta relevancia'" [class.v2-tm-relevance-med]="opportunity.relevanceLabel === 'Media relevancia'">{{ opportunity.relevanceLabel }}</span>
                   <mat-icon>{{ selectedOpportunityIndex === opportunity.index ? 'expand_less' : 'expand_more' }}</mat-icon>
@@ -2235,19 +1883,19 @@ limitations under the License.
                   <!-- Hallazgo -->
                   <div>
                     <h5 style="color: #fff; font-size: 13px; margin: 0 0 8px 0; display: flex; align-items: center; gap: 4px;">
-                      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #B6FF00;">search</mat-icon> Hallazgo
+                      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #AEF366;">search</mat-icon> Hallazgo
                     </h5>
                     <p style="color: #A7AAA5; font-size: 13px;">{{ opportunity.finding }}</p>
                   </div>
                   <!-- Evidencia Visual (Screenshot + Tags) -->
                   <div>
                     <h5 style="color: #fff; font-size: 13px; margin: 0 0 8px 0; display: flex; align-items: center; gap: 4px;">
-                      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #B6FF00;">image</mat-icon> Evidencia Visual
+                      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #AEF366;">image</mat-icon> Evidencia Visual
                     </h5>
                     <div *ngIf="opportunity.evidenceObj; else txtEvidence" style="background: #171B19; border: 1px solid #2A302D; border-radius: 8px; overflow: hidden; margin-bottom: 8px;">
-                      <!-- Simulated Video Thumbnail via CSS or static image, with timestamp overlay -->
+                      <!-- Video Screenshot with timestamp overlay -->
                       <div style="position: relative; width: 100%; height: 100px; background: #0A0D0B; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                        <img [src]="getScreenshotForTimestamp(opportunity.evidenceObj.timestamp_s)" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
+                        <img [src]="getScreenshotForTimestamp(opportunity.evidenceObj.timestamp_s)" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85;">
                         <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px;">
                           00:{{ (opportunity.evidenceObj.timestamp_s < 10 ? '0' : '') + opportunity.evidenceObj.timestamp_s }}
                         </div>
@@ -2266,16 +1914,24 @@ limitations under the License.
                   <!-- Insight -->
                   <div>
                     <h5 style="color: #fff; font-size: 13px; margin: 0 0 8px 0; display: flex; align-items: center; gap: 4px;">
-                      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #B6FF00;">lightbulb</mat-icon> Insight
+                      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #AEF366;">lightbulb</mat-icon> Insight
                     </h5>
                     <p style="color: #A7AAA5; font-size: 13px;">{{ opportunity.insight }}</p>
                   </div>
                   <!-- Oportunidad -->
                   <div>
                     <h5 style="color: #fff; font-size: 13px; margin: 0 0 8px 0; display: flex; align-items: center; gap: 4px;">
-                      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #B6FF00;">track_changes</mat-icon> Oportunidad
+                      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #AEF366;">track_changes</mat-icon> Oportunidad Creativa
                     </h5>
-                    <p style="color: #A7AAA5; font-size: 13px;">{{ opportunity.opportunity }}</p>
+                    <p style="color: #A7AAA5; font-size: 13px; margin-bottom: 12px;">{{ opportunity.opportunity }}</p>
+                    <div *ngIf="opportunity.suggestedFormat && opportunity.suggestedFormat !== 'Dato no disponible'" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 12px; font-size: 12px;">
+                      <div style="color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Ruta de activación</div>
+                      <div style="display: flex; align-items: center; gap: 6px; color: #fff; font-weight: 600;">
+                        <span style="color: #AEF366; text-transform: uppercase;">{{ opportunity.intervention === 'personalize' ? 'Personalize' : 'Amplify' }}</span>
+                        <mat-icon style="font-size: 14px; width: 14px; height: 14px; color: #666;">arrow_forward</mat-icon>
+                        <span>{{ opportunity.suggestedFormat }}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </article>
@@ -2287,8 +1943,8 @@ limitations under the License.
               <header class="v2-tm-filter-header" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end;">
                   <div>
-                    <h3 style="margin: 0; color: #fff; font-size: 20px; font-weight: 600;">{{ territoryAdaptations.length }} adaptaciones sugeridas</h3>
-                    <p style="margin: 4px 0 0; color: #A7AAA5; font-size: 14px;">A partir de las oportunidades identificadas en este territorio.</p>
+                    <h3 style="margin: 0; color: #fff; font-size: 20px; font-weight: 600;">{{ territoryAdaptations.length }} rutas de adaptación recomendadas</h3>
+                    <p style="margin: 4px 0 0; color: #A7AAA5; font-size: 14px;">Soluciones creativas y formatos sugeridos a partir de las oportunidades identificadas en este territorio.</p>
                   </div>
                   <div class="v2-tm-filters" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;">
                     <button type="button" style="padding: 6px 16px; border-radius: 999px; background: transparent; border: 1px solid #2A302D; color: #fff; cursor: pointer; font-size: 12px;" [class.active]="adaptationsOpportunityFilter === 'all'"
@@ -2305,23 +1961,23 @@ limitations under the License.
                     <img *ngIf="card.timestamp_s !== undefined" [src]="getScreenshotForTimestamp(card.timestamp_s)" [alt]="'Preview de ' + card.title">
                     <img *ngIf="card.timestamp_s === undefined && card.previewUrl" [src]="card.previewUrl" [alt]="'Preview de ' + card.title">
                     <span class="v2-tm-preview-pill" [attr.data-opp]="card.sourceOpportunityIndex">{{ card.sourceOpportunityLabel }}</span>
-                    <mat-icon class="v2-tm-play">play_circle_filled</mat-icon>
-                    <small class="v2-tm-preview-time">0:15</small>
                   </div>
                   <div class="v2-tm-card-body">
-                    <span class="v2-tm-taxonomy" [attr.data-type]="card.classification">{{ card.classification }}</span>
+                    <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
+                      <span class="v2-tm-taxonomy" [attr.data-type]="card.classification">{{ card.classification }}</span>
+                      <span *ngIf="card.intervention" style="background: rgba(174, 243, 102, 0.12); color: #AEF366; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase;">
+                        {{ card.intervention === 'personalize' ? 'Personalize' : 'Amplify' }}
+                      </span>
+                    </div>
                     <h4>{{ card.title }}</h4>
                     <p>{{ card.description }}</p>
-                    <div class="v2-tm-format"><small>Formato sugerido</small><strong>{{ card.suggestedFormat }}</strong></div>
+                    <div class="v2-tm-format"><small>Formato recomendado</small><strong>{{ card.suggestedFormat }}</strong></div>
                     <div *ngIf="card.idealFor?.length" style="margin-top: 12px; margin-bottom: 24px;">
                       <small style="color: #A7AAA5; font-size: 11px; display: block; margin-bottom: 6px;">Ideal para</small>
                       <div class="v2-tm-card-tags" style="gap: 4px;">
                         <span *ngFor="let ideal of card.idealFor">{{ ideal }}</span>
                       </div>
                     </div>
-                    <button type="button" class="v2-tm-card-cta" [attr.aria-label]="'Ver adaptación ' + card.title">
-                      <mat-icon>arrow_forward</mat-icon>
-                    </button>
                   </div>
                 </article>
               </div>
@@ -2336,3 +1992,81 @@ limitations under the License.
     </div>
 
   </div>
+
+<!-- ── CREATIVE EVALUATION (ABCD) MODAL ────────────────────────────────────── -->
+<div class="v2-abcd-modal-overlay" *ngIf="isAbcdModalOpen" (click)="closeAbcdModal()" role="dialog" aria-modal="true" aria-labelledby="abcd-modal-title">
+  <div class="v2-abcd-modal-container" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="v2-abcd-modal-header">
+      <div class="v2-abcd-modal-header-left">
+        <div class="v2-abcd-modal-icon">
+          <mat-icon>auto_awesome</mat-icon>
+        </div>
+        <h2 id="abcd-modal-title" class="v2-abcd-modal-title">Creative Evaluation (ABCD)</h2>
+      </div>
+      <button type="button" class="v2-abcd-modal-close" (click)="closeAbcdModal()" aria-label="Cerrar modal">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Intro text -->
+    <p class="v2-abcd-modal-intro">
+      La metodología ABCD de Google constituye una de las capas de evaluación utilizadas para analizar la efectividad creativa del video.
+    </p>
+
+    <!-- 2x2 Grid for 4 ABCD Dimensions -->
+    <div class="v2-abcd-modal-grid">
+      <!-- A — Attention -->
+      <article class="v2-abcd-modal-card">
+        <div class="v2-abcd-modal-card-header">
+          <span class="v2-dim-letter" style="background: rgba(34, 197, 94, 0.14); color: #22c55e;">
+            <mat-icon>visibility</mat-icon>
+          </span>
+          <h3 class="v2-abcd-modal-card-title">A — Attention</h3>
+        </div>
+        <p class="v2-abcd-modal-card-desc">
+          Captar la atención desde los primeros segundos con elementos creativos de alto impacto.
+        </p>
+      </article>
+
+      <!-- B — Branding -->
+      <article class="v2-abcd-modal-card">
+        <div class="v2-abcd-modal-card-header">
+          <span class="v2-dim-letter" style="background: rgba(249, 115, 22, 0.14); color: #f97316;">
+            <mat-icon>local_offer</mat-icon>
+          </span>
+          <h3 class="v2-abcd-modal-card-title">B — Branding</h3>
+        </div>
+        <p class="v2-abcd-modal-card-desc">
+          Garantizar una presencia de marca visible y consistente durante todo el video.
+        </p>
+      </article>
+
+      <!-- C — Connection -->
+      <article class="v2-abcd-modal-card">
+        <div class="v2-abcd-modal-card-header">
+          <span class="v2-dim-letter" style="background: rgba(236, 72, 153, 0.14); color: #ec4899;">
+            <mat-icon>favorite_border</mat-icon>
+          </span>
+          <h3 class="v2-abcd-modal-card-title">C — Connection</h3>
+        </div>
+        <p class="v2-abcd-modal-card-desc">
+          Crear una conexión emocional mediante historias y mensajes relevantes.
+        </p>
+      </article>
+
+      <!-- D — Direction -->
+      <article class="v2-abcd-modal-card">
+        <div class="v2-abcd-modal-card-header">
+          <span class="v2-dim-letter" style="background: rgba(245, 158, 11, 0.14); color: #f59e0b;">
+            <mat-icon>call_made</mat-icon>
+          </span>
+          <h3 class="v2-abcd-modal-card-title">D — Direction</h3>
+        </div>
+        <p class="v2-abcd-modal-card-desc">
+          Guiar a la audiencia con un llamado a la acción claro y efectivo.
+        </p>
+      </article>
+    </div>
+  </div>
+</div>

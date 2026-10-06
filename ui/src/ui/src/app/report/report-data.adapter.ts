@@ -1,7 +1,10 @@
 import {
   AdaptationType,
+  CREATIVE_FORMATS_CATALOG,
+  CreativeFormatId,
   CreativeServiceFormat,
   CreativeServicesSection,
+  IllustrativeVariant,
   PreviewAsset,
   PreviewType,
   RawCreativeServiceFormat,
@@ -61,14 +64,21 @@ function normalizeCreativeServiceFormat(raw: unknown, index: number): Validation
     return { valid: false, empty: false, issues: [`formats[${index}] debe ser un objeto.`] };
   }
   const value = raw as RawCreativeServiceFormat;
-  const id = asNonEmptyString(value.id);
-  const name = asNonEmptyString(value.name);
-  const description = asNonEmptyString(value.description);
-  const previewUrl = asNonEmptyString(value.previewUrl);
-  const previewType = asPreviewType(value.previewType);
-  const previewAlt = asNonEmptyString(value.previewAlt) ?? (name ? `Preview de ${name}` : null);
-  const idealFor = asStringArray(value.idealFor);
+  const rawId = asNonEmptyString(value.id);
+  const normalizedId = rawId?.toLowerCase().replace(/[-\s]+/g, '_') as CreativeFormatId;
+  const catalogEntry = normalizedId && CREATIVE_FORMATS_CATALOG[normalizedId] ? CREATIVE_FORMATS_CATALOG[normalizedId] : undefined;
+
+  const id = catalogEntry ? catalogEntry.id : rawId;
+  const name = asNonEmptyString(value.name) ?? catalogEntry?.name;
+  const description = asNonEmptyString(value.description) ?? catalogEntry?.description;
+  const previewObj = isRecord(value.preview) ? (value.preview as Record<string, unknown>) : undefined;
+  const previewUrl = asNonEmptyString(value.previewUrl) ?? asNonEmptyString(previewObj?.['url']) ?? catalogEntry?.defaultPreviewUrl;
+  const previewType = asPreviewType(value.previewType) ?? asPreviewType(previewObj?.['type']) ?? (previewUrl?.endsWith('.gif') ? 'gif' : 'image');
+  const previewAlt = asNonEmptyString(value.previewAlt) ?? asNonEmptyString(previewObj?.['alt']) ?? (name ? `Preview de ${name}` : null);
+  const idealFor = asStringArray(value.idealFor) ?? catalogEntry?.idealFor;
   const relatedOpportunityType = asAdaptationType(value.relatedOpportunityType);
+  const capabilities = asStringArray(value.capabilities) ?? catalogEntry?.capabilities;
+  const available = typeof value.available === 'boolean' ? value.available : true;
   const issues: string[] = [];
 
   if (!id) issues.push(`formats[${index}].id es obligatorio.`);
@@ -81,7 +91,6 @@ function normalizeCreativeServiceFormat(raw: unknown, index: number): Validation
   if (value.relatedOpportunityType && !relatedOpportunityType) {
     issues.push(`formats[${index}].relatedOpportunityType debe ser KEEP, EXPLORE o ADAPT.`);
   }
-  if (typeof value.available !== 'boolean') issues.push(`formats[${index}].available debe ser booleano.`);
 
   if (issues.length || !id || !name || !description || !previewUrl || !previewType || !previewAlt || !idealFor) {
     return { valid: false, empty: false, issues };
@@ -98,7 +107,8 @@ function normalizeCreativeServiceFormat(raw: unknown, index: number): Validation
       preview: { url: previewUrl, type: previewType, alt: previewAlt },
       idealFor,
       relatedOpportunityType,
-      available: value.available as boolean,
+      available,
+      capabilities,
     },
   };
 }
@@ -170,10 +180,10 @@ function normalizeTestingItem(raw: unknown, index: number): ValidationResult<Tes
   const variantUrl = value.variantPreviewUrl ?? value.variant_preview_url;
   const original = asPreview(value.original, 'Creatividad original')
     ?? asPreview(originalUrl, 'Creatividad original')
-    ?? { url: 'assets/formats/original_creative.png', type: 'image', alt: 'Original' };
+    ?? { url: 'assets/formats/testing/testing_original.png', type: 'image', alt: 'Original' };
   const variant = asPreview(value.variant, variantLabel ? `Adaptación ${variantLabel}` : 'Adaptación territorial')
     ?? asPreview(variantUrl, variantLabel ? `Adaptación ${variantLabel}` : 'Adaptación territorial')
-    ?? { url: 'assets/formats/variante_cdmx.png', type: 'image', alt: variantLabel || 'Variante' };
+    ?? { url: 'assets/formats/testing/testing_variant.png', type: 'image', alt: variantLabel || 'Variante' };
   const statusValue = asNonEmptyString(value.status);
   const status: TestingStatus = statusValue === 'ready' ? 'ready' : 'pending_measurement';
   const issues: string[] = [];
@@ -190,6 +200,13 @@ function normalizeTestingItem(raw: unknown, index: number): ValidationResult<Tes
     return { valid: false, empty: false, issues };
   }
 
+  const illustrativeVariant: IllustrativeVariant = {
+    label: variantLabel,
+    preview: variant,
+    isMockup: true,
+    interventionType: (asNonEmptyString(value.intervention_type) as 'personalize' | 'amplify') || undefined,
+  };
+
   return {
     valid: true,
     empty: false,
@@ -200,6 +217,7 @@ function normalizeTestingItem(raw: unknown, index: number): ValidationResult<Tes
       original,
       variant,
       variantLabel,
+      illustrativeVariant,
       hypothesis,
       successMetrics,
       territory,

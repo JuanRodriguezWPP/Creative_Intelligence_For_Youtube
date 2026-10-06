@@ -7,6 +7,13 @@ import {
   ReportSectionViewModel,
 } from '../report.models';
 
+export const CREATIVE_FORMAT_GIF_MAP: Record<string, string> = {
+  branded_bar: 'assets/formats/Formats Gifs/BrandedBar.gif',
+  video_card: 'assets/formats/Formats Gifs/VideoCard.gif',
+  canvas: 'assets/formats/Formats Gifs/Canvas.gif',
+  qr_code: 'assets/formats/Formats Gifs/QR_Code.gif',
+};
+
 @Component({
   selector: 'app-creative-services-section',
   standalone: true,
@@ -21,6 +28,10 @@ export class CreativeServicesSectionComponent {
 
   selectedFormatId: string | null = null;
   failedPreviewIds = new Set<string>();
+
+  getFormatPreviewUrl(format: CreativeServiceFormat): string {
+    return format.preview?.url || CREATIVE_FORMAT_GIF_MAP[format.id] || `assets/formats/Formats Gifs/${format.id}.gif`;
+  }
 
   scrollFormats(direction: -1 | 1): void {
     const track = this.formatTrack?.nativeElement;

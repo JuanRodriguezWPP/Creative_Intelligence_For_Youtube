@@ -181,21 +181,97 @@ export interface V2GeoIntelligence {
 }
 
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CATÁLOGO OFICIAL DE FORMATOS DE CREATIVE SERVICES (IDs Estables)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type CreativeFormatId = 'branded_bar' | 'video_card' | 'canvas' | 'qr_code';
+
+export interface CreativeFormatDefinition {
+  id: CreativeFormatId;
+  name: string;
+  description: string;
+  previewAssetUrl: string;
+  idealFor: string[];
+  capabilities?: ('personalize' | 'amplify')[]; // Concepto mantenido, mapping pendiente de validación
+}
+
+export const CREATIVE_FORMATS_CATALOG: Record<CreativeFormatId, CreativeFormatDefinition> = {
+  branded_bar: {
+    id: 'branded_bar',
+    name: 'Branded Bar',
+    description: 'Elementos gráficos superpuestos en barra superior o inferior que refuerzan branding, promociones o mensajes clave sin interrumpir el contenido.',
+    previewAssetUrl: 'assets/formats/branded_bar.png',
+    idealFor: ['Branding Continuo', 'Ofertas y Precios', 'Call to Action'],
+    capabilities: ['amplify', 'personalize'],
+  },
+  video_card: {
+    id: 'video_card',
+    name: 'Video Card',
+    description: 'Frame dinámico de 3 a 5 segundos insertado en apertura, intermedio o cierre para comunicar información complementaria o llamadas a la acción.',
+    previewAssetUrl: 'assets/formats/video_card.png',
+    idealFor: ['Cierres Contundentes', 'Información de Producto', 'Dirección'],
+    capabilities: ['personalize', 'amplify'],
+  },
+  canvas: {
+    id: 'canvas',
+    name: 'Canvas',
+    description: 'Lienzo perimetral de marca que enmarca el video, ampliando el espacio visual para mensajes territoriales, datos contextuales o elementos gráficos.',
+    previewAssetUrl: 'assets/formats/canvas.png',
+    idealFor: ['Contexto Territorial', 'Relevancia Local', 'Atención'],
+    capabilities: ['personalize'],
+  },
+  qr_code: {
+    id: 'qr_code',
+    name: 'QR Code',
+    description: 'Integración estratégica de código QR en pantalla para conectar la experiencia de video en CTV o YouTube con conversión digital directa.',
+    previewAssetUrl: 'assets/formats/qr_code.png',
+    idealFor: ['Conversión Directa', 'Tráfico a Landing', 'Interacción Mobile'],
+    capabilities: ['personalize', 'amplify'],
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TESTING FRAMEWORK — EXPERIMENTOS ILUSTRATIVOS (CREATE -> TEST -> MEASURE -> LEARN)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface TestingExperiment {
+  id: string;
+  phase: 'CREATE' | 'TEST' | 'MEASURE' | 'LEARN';
+  recommendation: string;
+  baselineAsset: {
+    label: string;
+    previewUrl: string;
+  };
+  illustrativeVariant: {
+    label: string;
+    formatId: CreativeFormatId;
+    previewUrl: string;
+    isMockup: true; // Deja explícito que es un mockup metodológico, no un resultado medido
+  };
+  hypothesis: string;
+  successMetrics: string[];
+  territory?: string;
+  adaptationType?: 'KEEP' | 'EXPLORE' | 'ADAPT';
+}
+
 export interface V2TestingFrameworkItem {
   recomendacion: string;
   variante: string;
   hipotesis: string;
   metricas_exito: string[];
+  formato?: CreativeFormatId;
 }
 
-export interface CompassAbcdDimensiones {
+export interface CiAbcdDimensiones {
   attention_score: number;
   branding_score: number;
   connection_score: number;
   direction_score: number;
 }
+export type CompassAbcdDimensiones = CiAbcdDimensiones;
 
-export interface CompassData {
+export interface CreativeIntelligenceData {
   meta: {
     brand: string;
     campaign: string;
@@ -224,7 +300,7 @@ export interface CompassData {
     score: number;
     score_max: number;
     score_label: string;
-    abcd_dimensiones?: CompassAbcdDimensiones;
+    abcd_dimensiones?: CiAbcdDimensiones;
     abcd: {
       attention: AbcdInsightCard;
       branding: AbcdInsightCard;
@@ -256,6 +332,9 @@ export interface CompassData {
     testing_framework: V2TestingFrameworkItem[];
   } | null;
 }
+
+// Alias de retrocompatibilidad
+export type CompassData = CreativeIntelligenceData;
 
 export interface PreviousRunsResponse {
   encodedUserId: string;

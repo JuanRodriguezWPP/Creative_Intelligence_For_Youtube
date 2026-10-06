@@ -21,7 +21,17 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "src/assets/Formats Gifs",
+                "output": "public/Formats Gifs"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets/Formats Gifs",
+                "output": "Formats Gifs"
+              }
             ],
             "styles": [
               "src/custom-theme.scss",

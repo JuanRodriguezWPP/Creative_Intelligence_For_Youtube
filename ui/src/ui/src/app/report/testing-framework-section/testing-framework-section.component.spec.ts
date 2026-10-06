@@ -14,30 +14,21 @@ describe('TestingFrameworkSectionComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders the documented four-step flow', () => {
-    const titles = Array.from(fixture.nativeElement.querySelectorAll('.v2-testing-title'))
+  it('renders the 4 transversal methodology steps (CREATE, TEST, MEASURE, LEARN)', () => {
+    const badges = Array.from(fixture.nativeElement.querySelectorAll('.v2-methodology-badge'))
       .map((element: unknown) => (element as HTMLElement).textContent?.trim());
 
-    expect(titles).toEqual(['Recomendación', 'Original vs. Variante', 'Hipótesis', 'Métrica de éxito']);
-    expect(fixture.nativeElement.textContent).toContain('ADAPT');
-    expect(fixture.nativeElement.textContent).toContain('Pendiente de medición');
+    expect(badges).toEqual(['01 — CREATE', '02 — TEST', '03 — MEASURE', '04 — LEARN']);
+    expect(fixture.nativeElement.textContent).toContain('De la decisión al aprendizaje.');
+    expect(fixture.nativeElement.textContent).not.toContain('T01');
   });
 
-  it('labels success metrics as targets rather than measured results', () => {
-    expect(fixture.nativeElement.textContent).toContain('KPIs objetivo');
-    expect(fixture.nativeElement.textContent).toContain('Brand Lift');
-  });
-
-  it('shows an incomplete state without fabricating cards', () => {
-    component.section = {
-      state: 'incomplete',
-      source: 'none',
-      data: null,
-      issues: ['successMetrics es obligatorio.'],
-    };
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelectorAll('.v2-testing-card').length).toBe(0);
-    expect(fixture.nativeElement.textContent).toContain('Framework incompleto');
+  it('renders the illustrative A/B experiment example and NEXT ITERATION flow', () => {
+    expect(fixture.nativeElement.textContent).toContain('ASSET ORIGINAL');
+    expect(fixture.nativeElement.textContent).toContain('VARIANTE ILUSTRATIVA');
+    expect(fixture.nativeElement.textContent).toContain('HIPÓTESIS');
+    expect(fixture.nativeElement.textContent).toContain('QUÉ MEDIMOS');
+    expect(fixture.nativeElement.textContent).toContain('NEXT ITERATION');
+    expect(fixture.nativeElement.textContent).toContain('Ejemplo metodológico ilustrativo');
   });
 });

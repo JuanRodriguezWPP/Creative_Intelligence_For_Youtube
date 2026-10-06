@@ -3,14 +3,14 @@ import { GenerationHelper } from '../generation';
 
 const router = Router();
 
-// POST /api/youtube-ideas
+// POST /api/youtube-ideas (Legacy alias)
 router.post('/youtube-ideas', async (req: Request, res: Response) => {
   try {
     const {
       gcsFolder, abcdType, customPoints, mode, selectedValue,
       selectedCategories, macroJson, microJson
     } = req.body;
-    console.log('Starting generateYoutubeIdeas for folder:', gcsFolder);
+    console.log('[Legacy Route] /api/youtube-ideas called');
     const result = await GenerationHelper.generateYoutubeIdeas(
       gcsFolder, abcdType, customPoints, mode, selectedValue,
       selectedCategories, macroJson, microJson
@@ -22,13 +22,14 @@ router.post('/youtube-ideas', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/compass/geo-intelligence
+// POST /api/compass/geo-intelligence (Legacy alias)
 router.post('/compass/geo-intelligence', async (req: Request, res: Response) => {
   try {
-    const { compassContextJson, macroJson, microJson } = req.body;
-    console.log('Starting generateGeoIntelligence');
+    const { compassContextJson, ciContextJson, macroJson, microJson } = req.body;
+    const context = compassContextJson || ciContextJson;
+    console.log('[Legacy Route] /api/compass/geo-intelligence called');
     const result = await GenerationHelper.generateGeoIntelligence(
-      compassContextJson, macroJson, microJson
+      context, macroJson, microJson
     );
     res.json({ result });
   } catch (error: any) {
@@ -37,13 +38,13 @@ router.post('/compass/geo-intelligence', async (req: Request, res: Response) => 
   }
 });
 
-
-// POST /api/compass/prioritization
+// POST /api/compass/prioritization (Legacy alias)
 router.post('/compass/prioritization', async (req: Request, res: Response) => {
   try {
-    const { compassContextJson } = req.body;
-    console.log('Starting generatePrioritization');
-    const result = await GenerationHelper.generatePrioritization(compassContextJson);
+    const { compassContextJson, ciContextJson } = req.body;
+    const context = compassContextJson || ciContextJson;
+    console.log('[Legacy Route] /api/compass/prioritization called');
+    const result = await GenerationHelper.generatePrioritization(context);
     res.json({ result });
   } catch (error: any) {
     console.error('Error in POST /api/compass/prioritization:', error);

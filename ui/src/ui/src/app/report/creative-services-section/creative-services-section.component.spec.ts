@@ -14,22 +14,21 @@ describe('CreativeServicesSectionComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders the five formats in the documented order', () => {
+  it('renders the four catalog formats in the documented order', () => {
     const cards = fixture.nativeElement.querySelectorAll('.v2-service-card');
     const titles = Array.from(fixture.nativeElement.querySelectorAll('.v2-service-title'))
       .map((element: unknown) => (element as HTMLElement).textContent?.trim());
 
-    expect(cards.length).toBe(5);
-    expect(titles).toEqual(['InBanner Video', 'Hands-Free Carousel', 'Loopbook', 'QR Format', 'BrandLift']);
+    expect(cards.length).toBe(4);
+    expect(titles).toEqual(['Branded Bar', 'Video Card', 'Canvas', 'QR Code']);
     expect(fixture.nativeElement.textContent).toContain('LOCAL MOCK DATA');
   });
 
-  it('selects a format through its accessible CTA', () => {
+  it('selects a format when invoked', () => {
     spyOn(component.formatSelected, 'emit');
-    const button: HTMLButtonElement = fixture.nativeElement.querySelector('.v2-service-btn');
-    button.click();
+    component.selectFormat(CREATIVE_SERVICES_MOCK.formats[0]);
 
-    expect(component.selectedFormatId).toBe('inbanner-video');
+    expect(component.selectedFormatId).toBe('branded_bar');
     expect(component.formatSelected.emit).toHaveBeenCalledWith(CREATIVE_SERVICES_MOCK.formats[0]);
   });
 

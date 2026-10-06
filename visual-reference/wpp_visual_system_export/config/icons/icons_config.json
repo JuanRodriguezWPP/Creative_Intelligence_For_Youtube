@@ -1,0 +1,46 @@
+{
+  "iconLibrary": "lucide-react",
+  "version": "^0.546.0",
+  "npmPackage": "lucide-react",
+  "defaultConfig": {
+    "strokeWidth": 1.75,
+    "size": 16,
+    "color": "currentColor"
+  },
+  "standardSizes": {
+    "xs": 12,
+    "sm": 14,
+    "md": 16,
+    "lg": 20,
+    "xl": 24
+  },
+  "coreIconsUsed": [
+    "ArrowRight",
+    "BarChart3",
+    "Calendar",
+    "Check",
+    "CheckCircle2",
+    "ChevronDown",
+    "ChevronRight",
+    "Compass",
+    "Download",
+    "Eye",
+    "FileText",
+    "Filter",
+    "Info",
+    "Layers",
+    "Lock",
+    "Play",
+    "Search",
+    "Share2",
+    "ShieldAlert",
+    "ShieldCheck",
+    "Smartphone",
+    "Sparkles",
+    "Tag",
+    "TrendingUp",
+    "Video",
+    "X",
+    "Zap"
+  ]
+}

@@ -11,6 +11,7 @@ import storageRoutes from './routes/storage.routes';
 import generationRoutes from './routes/generation.routes';
 import dataRoutes from './routes/data.routes';
 import compassRoutes from './routes/compass.routes';
+import ciRoutes from './routes/ci.routes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,6 +31,7 @@ app.use(express.static(ANGULAR_DIST));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
+    service: 'Creative Intelligence for YouTube',
     timestamp: new Date().toISOString(),
     bucket: process.env.GCS_BUCKET,
     routes: [
@@ -48,10 +50,11 @@ app.get('/api/health', (req, res) => {
       'POST /api/store-approval',
       'POST /api/split-segment',
       'POST /api/update-transcription',
-      'POST /api/youtube-ideas',
-      'POST /api/compass/geo-intelligence',
-      'POST /api/compass/channel-intelligence',
-      'POST /api/compass/prioritization',
+      'POST /api/ci/geo-intelligence',
+      'POST /api/ci/prioritization',
+      'POST /api/ci/youtube-ideas',
+      'POST /api/compass/geo-intelligence (legacy)',
+      'POST /api/compass/prioritization (legacy)',
     ]
   });
 });
@@ -60,6 +63,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api', storageRoutes);
 app.use('/api', generationRoutes);
 app.use('/api', dataRoutes);
+app.use('/api/ci', ciRoutes);
+app.use('/api', ciRoutes);
 app.use('/api', compassRoutes);
 
 // Misc endpoints

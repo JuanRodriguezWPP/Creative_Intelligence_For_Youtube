@@ -9,7 +9,7 @@
  */
 
 import NodeCache from 'node-cache';
-import { COMPASS_INTELLIGENCE_PROMPTS, PROMPTS } from './prompts';
+import { CI_INTELLIGENCE_PROMPTS, COMPASS_INTELLIGENCE_PROMPTS, PROMPTS } from './prompts';
 import { CONFIG } from './config';
 import { AppLogger } from './logging';
 import { StorageManager } from './storage';
@@ -482,11 +482,11 @@ export class GenerationHelper {
   }
 
   // ─────────────────────────────────────────────────────────────────
-  // COMPASS PIPELINE — Pasos 4, 5 y 6
+  // CREATIVE INTELLIGENCE PIPELINE — Pasos 4, 5 y 6
   // ─────────────────────────────────────────────────────────────────
 
   static async generateGeoIntelligence(
-    compassContextJson: string,
+    ciContextJson: string,
     macroJson: string,
     microJson: string
   ): Promise<string> {
@@ -512,12 +512,13 @@ export class GenerationHelper {
       AppLogger.warn('Could not truncate microJson');
     }
 
-    let prompt = COMPASS_INTELLIGENCE_PROMPTS.geoIntelligence;
-    prompt = prompt.replace('{{compassContextJson}}', compassContextJson);
+    let prompt = CI_INTELLIGENCE_PROMPTS.geoIntelligence;
+    prompt = prompt.replace('{{ciContextJson}}', ciContextJson);
+    prompt = prompt.replace('{{compassContextJson}}', ciContextJson);
     prompt = prompt.replace('{{macroJson}}', macroJsonTruncated);
     prompt = prompt.replace('{{microJson}}', microJsonTruncated);
 
-    AppLogger.info('Compass: generateGeoIntelligence starting');
+    AppLogger.info('CI Intelligence: generateGeoIntelligence starting');
     let response = await VertexHelper.generate(prompt);
     response = response.trim();
     if (response.startsWith('```json')) response = response.substring(7);
@@ -526,11 +527,12 @@ export class GenerationHelper {
     return response.trim();
   }
 
-  static async generatePrioritization(compassContextJson: string): Promise<string> {
-    let prompt = COMPASS_INTELLIGENCE_PROMPTS.prioritization;
-    prompt = prompt.replace('{{compassContextJson}}', compassContextJson);
+  static async generatePrioritization(ciContextJson: string): Promise<string> {
+    let prompt = CI_INTELLIGENCE_PROMPTS.prioritization;
+    prompt = prompt.replace('{{ciContextJson}}', ciContextJson);
+    prompt = prompt.replace('{{compassContextJson}}', ciContextJson);
 
-    AppLogger.info('Compass: generatePrioritization starting');
+    AppLogger.info('CI Intelligence: generatePrioritization starting');
     let response = await VertexHelper.generate(prompt);
     response = response.trim();
     if (response.startsWith('```json')) response = response.substring(7);

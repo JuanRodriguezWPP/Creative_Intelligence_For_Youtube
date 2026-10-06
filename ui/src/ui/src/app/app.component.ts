@@ -69,6 +69,7 @@ import {
   AbcdType,
   AvSegment,
   BrandParams,
+  CreativeIntelligenceData,
   CompassData,
   V2Territory,
   FormatType,
@@ -261,24 +262,134 @@ export class AppComponent {
   modalDeckOverlay: any = null;
   currentYear = new Date().getFullYear();
 
-  // ── Compass Pipeline State ──────────────────────────────────────────────────
-  compassData: CompassData | null = null;
-  compassJson = '';
-  compassStepError = '';
+  // ── Territories Carousel State ──────────────────────────────────────────────
+  @ViewChild('territoriesTrack') territoriesTrack?: ElementRef<HTMLElement>;
+  currentTerritoryIndex = 0;
+  isTerritoryAtStart = true;
+  isTerritoryAtEnd = false;
+
+  get currentTerritoryCounterLabel(): string {
+    const total = this.ciData?.geo_intelligence?.territorios?.length || 0;
+    if (total === 0) return '01 / 01';
+    const current = Math.min(Math.max(1, this.currentTerritoryIndex + 1), total);
+    const curStr = String(current).padStart(2, '0');
+    const totStr = String(total).padStart(2, '0');
+    return `${curStr} / ${totStr}`;
+  }
+
+  scrollTerritories(direction: -1 | 1): void {
+    const track = this.territoriesTrack?.nativeElement;
+    if (!track) return;
+    const firstCard = track.querySelector<HTMLElement>('.v2-territory-card');
+    const cardWidth = (firstCard?.offsetWidth ?? 400) + 20;
+    track.scrollBy({ left: cardWidth * direction, behavior: 'smooth' });
+    setTimeout(() => this.updateTerritoriesScrollState(), 350);
+  }
+
+  onTerritoriesScroll(): void {
+    this.updateTerritoriesScrollState();
+  }
+
+  updateTerritoriesScrollState(): void {
+    const track = this.territoriesTrack?.nativeElement;
+    if (!track) return;
+    const scrollLeft = track.scrollLeft;
+    const firstCard = track.querySelector<HTMLElement>('.v2-territory-card');
+    const cardWidth = (firstCard?.offsetWidth ?? 400) + 20;
+    const total = this.ciData?.geo_intelligence?.territorios?.length || 0;
+
+    const index = Math.round(scrollLeft / (cardWidth || 1));
+    this.currentTerritoryIndex = Math.max(0, Math.min(index, total - 1));
+    this.isTerritoryAtStart = scrollLeft <= 10;
+    this.isTerritoryAtEnd = scrollLeft + track.clientWidth >= track.scrollWidth - 10;
+  }
+
+  onTerritoriesKeydown(event: KeyboardEvent): void {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.scrollTerritories(-1);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.scrollTerritories(1);
+    }
+  }
+
+  // ── Creative Intelligence Pipeline State ─────────────────────────────────────
+  ciData: CreativeIntelligenceData | null = null;
+  ciJson = '';
+  ciStepError = '';
+  activeReportSection: string = 'report-creative-overview';
+  private readonly reportSectionIds = [
+    'report-creative-overview',
+    'report-territorial-context',
+    'report-creative-services',
+    'report-testing-framework',
+  ];
+
+  scrollToReportSection(sectionId: string): void {
+    this.activeReportSection = sectionId;
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const yOffset = -32;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }
+
+  @HostListener('window:scroll')
+  onReportWindowScroll(): void {
+    if (!this.ciData) return;
+    const scrollPosition = window.pageYOffset + 180;
+    for (let i = this.reportSectionIds.length - 1; i >= 0; i--) {
+      const id = this.reportSectionIds[i];
+      const el = document.getElementById(id);
+      if (el) {
+        const top = el.getBoundingClientRect().top + window.pageYOffset;
+        if (scrollPosition >= top) {
+          if (this.activeReportSection !== id) {
+            this.activeReportSection = id;
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  // Retrocompatibilidad controlada
+  get compassData(): CreativeIntelligenceData | null {
+    return this.ciData;
+  }
+  set compassData(value: CreativeIntelligenceData | null) {
+    this.ciData = value;
+  }
+
+  get compassJson(): string {
+    return this.ciJson;
+  }
+  set compassJson(value: string) {
+    this.ciJson = value;
+  }
+
+  get compassStepError(): string {
+    return this.ciStepError;
+  }
+  set compassStepError(value: string) {
+    this.ciStepError = value;
+  }
 
   get creativeServicesSection(): ReportSectionViewModel<CreativeServicesSection> {
-    const reportData = this.compassData as unknown as Record<string, unknown> | null;
+    const reportData = this.ciData as unknown as Record<string, unknown> | null;
     return resolveReportSection(
       reportData?.['creative_services'],
       validateCreativeServicesResponse,
       CREATIVE_SERVICES_MOCK,
-      true, // Siempre true porque es un catálogo estático
+      true, // Catálogo oficial
     );
   }
 
   get testingFrameworkSection(): ReportSectionViewModel<TestingFrameworkSection> {
     return resolveReportSection(
-      this.compassData?.testing_framework,
+      this.ciData?.testing_framework,
       validateTestingFrameworkResponse,
       TESTING_FRAMEWORK_MOCK,
       environment.enableReportMocks,
@@ -381,9 +492,21 @@ export class AppComponent {
     this.adaptationsOpportunityFilter = filter;
   }
 
+  // ── Creative Evaluation (ABCD) Modal State ──────────────────────────────
+  isAbcdModalOpen = false;
+
+  openAbcdModal(): void {
+    this.isAbcdModalOpen = true;
+  }
+
+  closeAbcdModal(): void {
+    this.isAbcdModalOpen = false;
+  }
+
   @HostListener('document:keydown.escape')
   handleModalEscape(): void {
     if (this.isTerritoryModalOpen) this.closeTerritoryModal();
+    if (this.isAbcdModalOpen) this.closeAbcdModal();
   }
   // ────────────────────────────────────────────────────────────────────────────
   
@@ -1134,17 +1257,31 @@ export class AppComponent {
           this.stepper.selectedIndex = 2;
         }
 
-        // 2. Inject compassData with all required sections
-        this.compassData = {
+        // 2. Inject ciData with all required sections
+        this.ciData = {
           meta: {
-            session_id: "VGR-MOCK",
-            generated_at: new Date().toISOString(),
-            platform: "ViGenAiR",
-            version: "2.0"
+            brand: "Granedoin",
+            campaign: "Explorer 2026",
+            country: "México",
+            objective: "Consideración",
+            date: new Date().toISOString().split('T')[0],
+            video_name: "Granedoin_30s.mp4",
+            video_duration: "30s",
+            video_url: null,
+            internal_ref: "MX_CI_2026"
           },
           contexto_campania: {
-            analisis_general: "Análisis general de prueba para validación visual.",
-            recomendaciones_estrategicas: ["Recomendación 1", "Recomendación 2"]
+            nombre_campania: "Explorer 2026",
+            objetivo_campania: "Consideración de marca y bienestar",
+            formato_asset: "Video 16:9",
+            comentarios_asset: "Campaña orientada a conectar con rutinas urbanas y hábitos de autocuidado.",
+            objetivo_negocio: "Incrementar Brand Consideration y Ad Recall",
+            audiencia: "Adultos 25-45 años con vida activa y movilidad urbana",
+            tono: "Cercano, dinámico y resolutivo",
+            descripcion: "Asset enfocado en presentar soluciones cotidianas para el alivio y bienestar.",
+            lineamientos_marca: "Paleta corporativa cálida y logotipo visible en momentos clave.",
+            consideraciones: "Optimizado para Advanced TV y YouTube.",
+            contexto_mercado: "México - Principales zonas metropolitanas"
           },
           evaluacion_creativa: {
             insight_principal: "El video construye una narrativa de alivio y bienestar desde situaciones cotidianas, con un tono cercano y optimista.",
@@ -1153,6 +1290,13 @@ export class AppComponent {
             score_label: "Bueno",
             strengths: ["Gancho emocional fuerte", "Paleta visual consistente"],
             weaknesses: ["Logo aparece tarde", "CTA poco visible"],
+            descripcion: "Evaluación audiovisual integral basada en los principios ABCD.",
+            abcd_dimensiones: {
+              attention_score: 85,
+              branding_score: 70,
+              connection_score: 90,
+              direction_score: 80
+            },
             abcd: {
               attention: {
                 valor: "85",
@@ -1201,156 +1345,110 @@ export class AppComponent {
             }
           },
           geo_intelligence: {
-            resumen_ejecutivo: "El video construye una narrativa de alivio y bienestar desde situaciones cotidianas, con un tono cercano y optimista. En el contexto de activación definido, esta propuesta puede adquirir distintos matices de relevancia según las características de los territorios donde se desplegará, especialmente en aquellos con mayor sensibilidad a temas de salud y bienestar.",
+            resumen_ejecutivo: "El video construye una narrativa de alivio y bienestar desde situaciones cotidianas, con un tono cercano y optimista. En el contexto de activación definido, esta propuesta adquiere distintos matices de relevancia al conectarla con las rutinas de movilidad y consumo de cada territorio.",
+            datos_clave: [
+              { icono: "bar_chart", valor: "88%", titulo: "Conectividad urbana", subtitulo: "Acceso móvil constante" },
+              { icono: "commute", valor: "3.8h", titulo: "Movilidad diaria", subtitulo: "Tiempo en transporte" },
+              { icono: "devices", valor: "72%", titulo: "Consumo multipantalla", subtitulo: "CTV + Móvil simultáneo" }
+            ],
             territorios: [
               {
-                demografia: {
-                  nombre: "Ciudad de México",
-                  clasificacion: "Área Metropolitana / Alta Densidad",
-                  geo_keys_incluidas: 45,
-                  audiencia_estimada: "~8.5M"
-                },
-                cultura_local: {
-                  perfil_consumidor: "Audiencia urbana, altamente conectada digitalmente, con acceso a múltiples pantallas simultáneas.",
-                  rutinas_intereses: "Interés marcado en bienestar, salud preventiva y soluciones rápidas para el ritmo de vida acelerado.",
-                  vinculo_con_marca: "Alto potencial de conexión por la densidad poblacional y la afinidad con productos de bienestar accesible."
-                },
-                oportunidades_creativas: [
+                territorio_id: "T01",
+                nombre: "Ciudad de México - Cuauhtémoc",
+                resumen: "Zona de alta densidad urbana y movilidad continua con consumidores que priorizan soluciones rápidas.",
+                caracteristicas_clave: [
+                  { icono: "location_city", titulo: "Densidad urbana", descripcion: "Alta concentración de actividad laboral y comercial" },
+                  { icono: "commute", titulo: "Movilidad intensa", descripcion: "Desplazamientos recurrentes en transporte y vía pública" },
+                  { icono: "devices", titulo: "Conexión digital", descripcion: "Consumo de video en múltiples pantallas a lo largo del día" },
+                  { icono: "directions_run", titulo: "Rutinas activas", descripcion: "Búsqueda constante de conveniencia y bienestar práctico" }
+                ],
+                indicadores_cualitativos: [
+                  { etiqueta: "Movilidad urbana", nivel: 5 },
+                  { etiqueta: "Sensibilidad a conveniencia", nivel: 4 },
+                  { etiqueta: "Adopción digital", nivel: 5 }
+                ],
+                temas_mapa: ["Movilidad", "Bienestar Urbano"],
+                oportunidades: [
                   {
-                    foco_del_problema: "Branding",
-                    diagnostico_video_original: "El ritmo urbano acelerado requiere una identificación de marca en los primeros 2 segundos para captar atención antes del scroll.",
-                    solucion_hiperlocal: "Superposición de logo con referencia a sucursales locales en CDMX.",
-                    formato_sugerido: "Card",
-                    elementos_de_adaptacion: ["Añadir cintillo inferior con dirección de sucursal más cercana", "Mención de 'CDMX' en la locución"]
+                    id: "Oportunidad-01",
+                    titulo: "Conexión con rutinas urbanas matutinas",
+                    descripcion: "Alinear el mensaje de bienestar con el inicio de la jornada laboral y desplazamientos.",
+                    relevancia: "Alta",
+                    hallazgo: "El producto se introduce en un contexto cotidiano pero la marca tarda en consolidar su llamado.",
+                    evidencia: {
+                      descripcion: "Escena de inicio con preparación matutina",
+                      timestamp_s: 4,
+                      tags: ["Rutina", "Inicio"]
+                    },
+                    insight: "En CDMX la atención compite con desplazamientos rápidos; se requiere claridad inmediata.",
+                    oportunidad: "Incorporar una barra persistente con llamado a la acción enfocado en conveniencia."
                   },
                   {
-                    foco_del_problema: "Atención",
-                    diagnostico_video_original: "El inicio del video es ligeramente lento para el consumo rápido característico de la audiencia capitalina.",
-                    solucion_hiperlocal: "Acelerar el primer segmento y abrir con un primer plano impactante.",
-                    formato_sugerido: "Bumper",
-                    elementos_de_adaptacion: ["Cortar 1 segundo del inicio", "Abrir con close-up del producto"]
-                  },
-                  {
-                    foco_del_problema: "Mensaje",
-                    diagnostico_video_original: "El mensaje genérico no conecta con la urgencia típica del consumidor de CDMX.",
-                    solucion_hiperlocal: "Adaptar el copy a 'Alivio inmediato para tu día a día en la ciudad'.",
-                    formato_sugerido: "Skin",
-                    elementos_de_adaptacion: ["Texto superpuesto localizado", "Ajuste de tono de voz"]
+                    id: "Oportunidad-02",
+                    titulo: "Activación omnicanal en puntos de conveniencia",
+                    descripcion: "Facilitar la conversión y ubicación de producto en farmacias y tiendas locales.",
+                    relevancia: "Media",
+                    hallazgo: "El cierre no ofrece un canal inmediato de compra o consulta.",
+                    evidencia: {
+                      descripcion: "Cierre del video con imagen de producto",
+                      timestamp_s: 26,
+                      tags: ["Cierre", "Packshot"]
+                    },
+                    insight: "Los usuarios urbanos valoran la activación rápida vía móvil en su trayecto.",
+                    oportunidad: "Agregar código QR interactivo para compra inmediata o localización de tiendas."
                   }
-                ]
-              },
-              {
-                demografia: {
-                  nombre: "Guadalajara",
-                  clasificacion: "Zona Metropolitana / Urbana",
-                  geo_keys_incluidas: 20,
-                  audiencia_estimada: "~3.2M"
-                },
-                cultura_local: {
-                  perfil_consumidor: "Perfil mixto urbano/tradicional con fuerte identidad regional.",
-                  rutinas_intereses: "Valoran la cercanía, la confianza y las marcas que se sienten locales.",
-                  vinculo_con_marca: "Conexión emocional a través del tono cálido y el sentido de comunidad."
-                },
-                oportunidades_creativas: [
+                ],
+                adaptaciones: [
                   {
-                    foco_del_problema: "Mensaje",
-                    diagnostico_video_original: "El mensaje del video es demasiado genérico y no conecta con la identidad jalisciense.",
-                    solucion_hiperlocal: "Adaptar el mensaje usando modismos y referencias locales de Guadalajara.",
-                    formato_sugerido: "Skin",
-                    elementos_de_adaptacion: ["Cambio de voz en off con acento regional", "Texto: 'Encuéntranos en Zapopan y Tlaquepaque'"]
+                    oportunidad_id: "Oportunidad-01",
+                    tipo: "ADAPT",
+                    intervencion: "personalize",
+                    titulo: "Branded Bar de Rutina Urbana",
+                    descripcion: "Barra inferior con branding y mensaje enfocado en alivio durante el trayecto diario.",
+                    formato: "branded_bar",
+                    ideal_para: ["Branding", "CTA Claro"]
                   },
                   {
-                    foco_del_problema: "CTA",
-                    diagnostico_video_original: "El CTA no incluye puntos de contacto locales.",
-                    solucion_hiperlocal: "Agregar QR con landing page específica de GDL.",
-                    formato_sugerido: "Card",
-                    elementos_de_adaptacion: ["QR a tienda más cercana", "Número de WhatsApp local"]
-                  }
-                ]
-              },
-              {
-                demografia: {
-                  nombre: "Monterrey + Área Metropolitana",
-                  clasificacion: "Área Metropolitana",
-                  geo_keys_incluidas: 24,
-                  audiencia_estimada: "~5.3M"
-                },
-                cultura_local: {
-                  perfil_consumidor: "Audiencia con alto poder de compra y fuerte afinidad con la marca.",
-                  rutinas_intereses: "Alto interés en soluciones de salud y bienestar práctico.",
-                  vinculo_con_marca: "Reconocimiento de marca consolidado en la región."
-                },
-                oportunidades_creativas: [
-                  {
-                    foco_del_problema: "Branding",
-                    diagnostico_video_original: "La identidad de marca puede reforzarse en el cierre de la pieza.",
-                    solucion_hiperlocal: "Extender el cierre con firma de marca regional.",
-                    formato_sugerido: "BrandLift",
-                    elementos_de_adaptacion: ["Cierre con claim regional", "Logo persistente"]
+                    oportunidad_id: "Oportunidad-01",
+                    tipo: "EXPLORE",
+                    intervencion: "amplify",
+                    titulo: "Video Card de Beneficios Matutinos",
+                    descripcion: "Tarjeta interactiva destacando beneficios clave del producto en formato dinámico.",
+                    formato: "video_card",
+                    ideal_para: ["Storytelling", "Educación"]
                   },
                   {
-                    foco_del_problema: "Atención",
-                    diagnostico_video_original: "El gancho inicial compite con contenido de alto ritmo.",
-                    solucion_hiperlocal: "Abrir con el beneficio principal en los primeros 2 segundos.",
-                    formato_sugerido: "InBanner Video",
-                    elementos_de_adaptacion: ["Corte inicial más corto"]
-                  }
-                ]
-              },
-              {
-                demografia: {
-                  nombre: "Puebla",
-                  clasificacion: "Zona Metropolitana",
-                  geo_keys_incluidas: 18,
-                  audiencia_estimada: "~2.1M"
-                },
-                cultura_local: {
-                  perfil_consumidor: "Audiencia familiar con hábitos de consumo tradicionales.",
-                  rutinas_intereses: "Interés creciente por soluciones preventivas de salud.",
-                  vinculo_con_marca: "Confianza en marcas con presencia histórica."
-                },
-                oportunidades_creativas: [
-                  {
-                    foco_del_problema: "Mensaje",
-                    diagnostico_video_original: "El mensaje no refleja el contexto familiar del territorio.",
-                    solucion_hiperlocal: "Enfocar la narrativa en el cuidado familiar cotidiano.",
-                    formato_sugerido: "Loopbook",
-                    elementos_de_adaptacion: ["Escenas familiares"]
+                    oportunidad_id: "Oportunidad-02",
+                    tipo: "ADAPT",
+                    intervencion: "personalize",
+                    titulo: "Activación QR Local CDMX",
+                    descripcion: "Código QR dinámico que dirige a sucursales y puntos de venta en CDMX.",
+                    formato: "qr_code",
+                    ideal_para: ["Conversión Directa", "Activación"]
                   },
                   {
-                    foco_del_problema: "Consideración",
-                    diagnostico_video_original: "Falta un cierre que impulse la evaluación del producto.",
-                    solucion_hiperlocal: "Agregar comparativo breve de beneficios.",
-                    formato_sugerido: "Card",
-                    elementos_de_adaptacion: ["Card de beneficios"]
-                  }
-                ]
-              },
-              {
-                demografia: {
-                  nombre: "Mérida",
-                  clasificacion: "Zona Metropolitana",
-                  geo_keys_incluidas: 20,
-                  audiencia_estimada: "~1.4M"
-                },
-                cultura_local: {
-                  perfil_consumidor: "Audiencia con estilos de vida saludables y ritmo pausado.",
-                  rutinas_intereses: "Afinidad con bienestar, actividad al aire libre y vida local.",
-                  vinculo_con_marca: "Alta receptividad a mensajes aspiracionales y cercanos."
-                },
-                oportunidades_creativas: [
-                  {
-                    foco_del_problema: "Conexión",
-                    diagnostico_video_original: "El tono puede alinearse mejor con el ritmo de vida local.",
-                    solucion_hiperlocal: "Ajustar el tono a un registro más calmado y aspiracional.",
-                    formato_sugerido: "BrandLift",
-                    elementos_de_adaptacion: ["Música ambiental"]
+                    oportunidad_id: "Oportunidad-02",
+                    tipo: "EXPLORE",
+                    intervencion: "amplify",
+                    titulo: "Canvas de Exploración Territorial",
+                    descripcion: "Marco visual expandido con catálogo de presentaciones y beneficios.",
+                    formato: "canvas",
+                    ideal_para: ["Impacto Visual", "Inmersión"]
                   }
                 ]
               }
             ]
           },
-          testing_framework: null
+          testing_framework: {
+            testing_framework: [
+              {
+                recomendacion: "Reforzar el branding matutino en zonas de alta movilidad mediante Branded Bar.",
+                variante: "Asset Original vs Branded Bar Territorial",
+                hipotesis: "La presencia de una barra persistente con CTA claro incrementará el Brand Lift y la intención de compra en CDMX.",
+                metricas_exito: ["Brand Lift", "Ad Recall", "VTR", "Consideración"]
+              }
+            ]
+          }
         } as any;
 
         // 3. Mock H3 Map Data for DeckGL (hexes over Mexico)
@@ -1930,20 +2028,18 @@ export class AppComponent {
     }
   }
 
-  downloadCompassReport(event?: Event) {
+  downloadReport(event?: Event) {
     if (event) {
       event.preventDefault();
     }
-    if (!this.compassData) return;
+    if (!this.ciData) return;
 
-    // Use buildInsightsPayload to get the full report if needed, or just export compassData.
-    // I'll export compassData and the rest of the downloadable JSON.
     const fullReport = this.buildInsightsPayload();
-    // Override or add compassData explicitly to ensure the edited fields are included
     const reportData = {
       ...fullReport,
       report_sections: this.buildReportSectionsExport(),
-      compassData: this.compassData
+      ciData: this.ciData,
+      compassData: this.ciData // Retrocompatibilidad en export
     };
 
     const dataStr = JSON.stringify(reportData, null, 2);
@@ -1951,9 +2047,13 @@ export class AppComponent {
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'compass_report.json';
+    anchor.download = 'creative_intelligence_report.json';
     anchor.click();
     window.URL.revokeObjectURL(url);
+  }
+
+  downloadCompassReport(event?: Event) {
+    this.downloadReport(event);
   }
 
   selectedHistoryRun: string = '';
@@ -2256,10 +2356,14 @@ export class AppComponent {
     return {};
   }
 
-  goToCompass() {
+  goToReport() {
     this.isAnalysisInProgress = false;
     this.stepper.next();
     setTimeout(() => this.initGeoMap(), 500);
+  }
+
+  goToCompass() {
+    this.goToReport();
   }
 
   skipToResults() {
@@ -2483,7 +2587,7 @@ export class AppComponent {
     });
     this.cardMapInstances = [];
 
-    territorios.forEach((ter, idx) => {
+    territorios.forEach((ter: any, idx: number) => {
       const containerId = 'card-map-' + idx;
       const mapContainer = document.getElementById(containerId);
       if (!mapContainer) return;
@@ -3132,125 +3236,8 @@ export class AppComponent {
 
           };
 
-          // INYECTAR MOCK DATA PARA GEO_INTELLIGENCE Y TESTING FRAMEWORK
-          // Esto asegura que la vista se renderice aunque la API aún no retorne estos datos
-          if (!this.compassData.geo_intelligence) {
-            this.compassData.geo_intelligence = {
-              resumen_ejecutivo: "El creativo tiene un alto potencial de resonancia en zonas urbanas densas y territorios orientados a la conveniencia, gracias a su ritmo acelerado y enfoque en la resolución rápida de problemas.",
-              territorios: [
-                {
-                  demografia: {
-                    nombre: "Urbanos Acelerados",
-                    clasificacion: "Zonas de alta densidad",
-                    geo_keys_incluidas: 12,
-                    audiencia_estimada: "Alta"
-                  },
-                  cultura_local: {
-                    perfil_consumidor: "Consumidores con poco tiempo, priorizan conveniencia",
-                    rutinas_intereses: "Transporte público, delivery, rutinas agitadas",
-                    vinculo_con_marca: "Buscan soluciones rápidas"
-                  },
-                  oportunidades_creativas: [
-                    {
-                      foco_del_problema: "Ritmo del video muy lento",
-                      diagnostico_video_original: "El gancho tarda 8 segundos",
-                      solucion_hiperlocal: "Adelantar el gancho a los 2 primeros segundos",
-                      formato_sugerido: "InBanner Video",
-                      elementos_de_adaptacion: ["Duración de 6s", "Call to Action inmediato"]
-                    }
-                  ]
-                },
-                {
-                  demografia: {
-                    nombre: "Suburbanos Familiares",
-                    clasificacion: "Áreas residenciales",
-                    geo_keys_incluidas: 8,
-                    audiencia_estimada: "Media"
-                  },
-                  cultura_local: {
-                    perfil_consumidor: "Familias con niños, enfocados en hogar y ahorro",
-                    rutinas_intereses: "Supermercados fin de semana, parques, escuelas",
-                    vinculo_con_marca: "Alta fidelidad si hay beneficios claros"
-                  },
-                  oportunidades_creativas: [
-                    {
-                      foco_del_problema: "Mensaje muy genérico",
-                      diagnostico_video_original: "No destaca beneficios para la familia",
-                      solucion_hiperlocal: "Enfocar escenas en momentos familiares y ahorro de presupuesto",
-                      formato_sugerido: "Loopbook",
-                      elementos_de_adaptacion: ["Música familiar", "Mostrar múltiples opciones de ahorro"]
-                    }
-                  ]
-                },
-                {
-                  demografia: {
-                    nombre: "Universitarios / Jóvenes",
-                    clasificacion: "Zonas universitarias",
-                    geo_keys_incluidas: 5,
-                    audiencia_estimada: "Media"
-                  },
-                  cultura_local: {
-                    perfil_consumidor: "Presupuesto ajustado, vida social activa",
-                    rutinas_intereses: "Estudio, entretenimiento nocturno, redes sociales",
-                    vinculo_con_marca: "Interacción digital fuerte"
-                  },
-                  oportunidades_creativas: [
-                    {
-                      foco_del_problema: "Falta de código de descuento",
-                      diagnostico_video_original: "No hay incentivo inmediato",
-                      solucion_hiperlocal: "Añadir código QR o promo clara al final",
-                      formato_sugerido: "Hands-Free Carousel",
-                      elementos_de_adaptacion: ["Colores vibrantes", "CTA de oferta"]
-                    }
-                  ]
-                },
-                {
-                  demografia: {
-                    nombre: "Ejecutivos Tradicionales",
-                    clasificacion: "Distritos financieros",
-                    geo_keys_incluidas: 4,
-                    audiencia_estimada: "Baja"
-                  },
-                  cultura_local: {
-                    perfil_consumidor: "Alto poder adquisitivo, buscan estatus y calidad",
-                    rutinas_intereses: "Oficina, gimnasio premium, restaurantes exclusivos",
-                    vinculo_con_marca: "Lealtad por prestigio"
-                  },
-                  oportunidades_creativas: [
-                    {
-                      foco_del_problema: "Tono demasiado informal",
-                      diagnostico_video_original: "Lenguaje muy coloquial",
-                      solucion_hiperlocal: "Ajustar copy a un tono más profesional",
-                      formato_sugerido: "InBanner Video",
-                      elementos_de_adaptacion: ["Voz en off seria", "Tipografía elegante"]
-                    }
-                  ]
-                },
-                {
-                  demografia: {
-                    nombre: "Zonas de Retiro",
-                    clasificacion: "Comunidades de adultos mayores",
-                    geo_keys_incluidas: 6,
-                    audiencia_estimada: "Baja"
-                  },
-                  cultura_local: {
-                    perfil_consumidor: "Buscan tranquilidad y confiabilidad",
-                    rutinas_intereses: "Actividades matutinas, comunidad, salud",
-                    vinculo_con_marca: "Buscan marcas de tradición"
-                  },
-                  oportunidades_creativas: [
-                    {
-                      foco_del_problema: "Letra pequeña",
-                      diagnostico_video_original: "Textos en pantalla muy pequeños y rápidos",
-                      solucion_hiperlocal: "Aumentar tamaño de fuente y pausar animaciones",
-                      formato_sugerido: "Loopbook",
-                      elementos_de_adaptacion: ["Textos legibles", "Mensaje de confianza"]
-                    }
-                  ]
-                }
-              ] as any[]
-            };
-          }
+          // Geo Intelligence and Testing Framework are resolved directly from
+          // the real API response (or via presentation layer adapters).
 
           // Testing Framework is resolved from the real response, or from an
           // explicitly enabled local fixture at the presentation boundary.

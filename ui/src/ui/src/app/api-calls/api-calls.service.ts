@@ -266,17 +266,18 @@ export class ApiCallsService implements ApiCalls {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // COMPASS PIPELINE METHODS
+  // CREATIVE INTELLIGENCE PIPELINE METHODS
   // ─────────────────────────────────────────────────────────────────────────────
 
   generateGeoIntelligence(
-    compassContextJson: string,
+    ciContextJson: string,
     macroJson: string,
     microJson: string
   ): Observable<string> {
     return this.httpClient
-      .post<{ result: string }>(`${API_BASE_URL}/compass/geo-intelligence`, {
-        compassContextJson,
+      .post<{ result: string }>(`${API_BASE_URL}/ci/geo-intelligence`, {
+        ciContextJson,
+        compassContextJson: ciContextJson, // Retrocompatibilidad
         macroJson,
         microJson,
       })
@@ -284,20 +285,24 @@ export class ApiCallsService implements ApiCalls {
   }
 
   generateChannelIntelligence(
-    compassContextJson: string,
+    ciContextJson: string,
     categories: string[]
   ): Observable<string> {
     return this.httpClient
-      .post<{ result: string }>(`${API_BASE_URL}/compass/channel-intelligence`, {
-        compassContextJson,
+      .post<{ result: string }>(`${API_BASE_URL}/ci/channel-intelligence`, {
+        ciContextJson,
+        compassContextJson: ciContextJson, // Retrocompatibilidad
         categories,
       })
       .pipe(map(res => res.result));
   }
 
-  generatePrioritization(compassContextJson: string): Observable<string> {
+  generatePrioritization(ciContextJson: string): Observable<string> {
     return this.httpClient
-      .post<{ result: string }>(`${API_BASE_URL}/compass/prioritization`, { compassContextJson })
+      .post<{ result: string }>(`${API_BASE_URL}/ci/prioritization`, {
+        ciContextJson,
+        compassContextJson: ciContextJson, // Retrocompatibilidad
+      })
       .pipe(map(res => res.result));
   }
 }

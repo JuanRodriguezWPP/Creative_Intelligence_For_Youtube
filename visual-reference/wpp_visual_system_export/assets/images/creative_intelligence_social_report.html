@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Intelligence — Advanced Social</title>
+<style>
+:root{
+  --lime:#AEF366; --cyan:#00D9EB; --blue:#5466FD; --violet:#A95CFF;
+  --ink:#111111; --muted:#666; --line:#DCDCDC; --soft:#F5F5F2;
+  --green:#26C76A; --orange:#FFB84D; --pink:#FF5E91;
+  --radius:18px; --shadow:0 14px 38px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#fff;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+button{font:inherit}
+.app{display:flex;min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:238px;padding:28px 18px;border-right:1px solid #eee;background:#fff;z-index:20}
+.logo{font-size:13px;font-weight:800;letter-spacing:-.03em;margin:0 0 42px}
+.logo span{display:block;color:#777;font-weight:500;margin-top:4px}
+.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#999;margin:0 10px 10px}
+.nav button{width:100%;text-align:left;border:0;background:none;padding:12px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px}
+.nav button:hover,.nav button.active{background:#f2f2f0}
+.nav .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--lime);margin-right:8px}
+.main{margin-left:238px;width:calc(100% - 238px);padding:0 42px 80px}
+.topbar{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;position:sticky;top:0;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);z-index:15}
+.crumb{font-size:12px;color:#777}.crumb b{color:#111}
+.download{border:1px solid #111;background:#111;color:#fff;padding:9px 14px;border-radius:9px;cursor:pointer;font-size:12px;font-weight:700}
+section{padding:64px 0 28px;scroll-margin-top:82px}
+.section-kicker{display:inline-block;background:var(--lime);font-size:10px;font-weight:900;text-transform:uppercase;padding:5px 7px;margin-bottom:13px}
+h1{font-size:52px;line-height:.94;letter-spacing:-.055em;margin:0 0 18px}
+h2{font-size:36px;line-height:1;letter-spacing:-.045em;margin:0 0 14px}
+h3{font-size:20px;margin:0 0 9px;letter-spacing:-.02em}
+.lead{font-size:17px;line-height:1.45;color:#444;max-width:780px}
+.muted{color:#777}
+.hero{min-height:480px;display:grid;grid-template-columns:1fr 1fr;gap:42px;align-items:center}
+.hero-copy{max-width:680px}
+.hero-visual{min-height:390px;border-radius:28px;position:relative;overflow:hidden;background:
+ radial-gradient(circle at 20% 20%, rgba(174,243,102,.95), transparent 34%),
+ radial-gradient(circle at 78% 28%, rgba(0,217,235,.7), transparent 32%),
+ radial-gradient(circle at 65% 80%, rgba(84,102,253,.7), transparent 38%),
+ linear-gradient(135deg,#f4f7ef,#dfefff 45%,#f4eaff);
+ box-shadow:var(--shadow)}
+.hero-visual:after{content:"CREATIVE INTELLIGENCE";position:absolute;left:28px;bottom:28px;font-size:11px;font-weight:900;letter-spacing:.14em}
+.context-card{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0}
+.pill{font-size:11px;border:1px solid #ddd;border-radius:99px;padding:7px 10px;background:#fff}
+.score-wrap{display:flex;gap:16px;align-items:center;margin:28px 0}
+.score{font-size:62px;font-weight:900;letter-spacing:-.07em;line-height:.8}
+.level{background:var(--lime);font-size:11px;font-weight:900;padding:7px 9px;border-radius:7px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{border:1px solid var(--line);border-radius:var(--radius);padding:18px;background:#fff}
+.card.soft{background:var(--soft);border-color:transparent}
+.card h3{font-size:16px}
+.small{font-size:12px;line-height:1.5;color:#666}
+.type{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.08em;padding:5px 7px;border-radius:6px;background:#eee;margin-bottom:12px}
+.type.strength{background:var(--lime)} .type.pattern{background:#dce4ff}.type.opportunity{background:#eadcff}
+.landscape{margin:20px 0;padding:14px 18px;border:1px solid #ddd;border-radius:14px;display:flex;gap:26px;align-items:center;overflow:auto}
+.landscape .metric{min-width:95px}.metric strong{display:block;font-size:21px}.metric span{font-size:10px;color:#777}
+.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.creative-card{border:1px solid #ddd;border-radius:16px;overflow:hidden;background:#fff}
+.thumb{height:205px;position:relative;padding:15px;display:flex;align-items:flex-end;overflow:hidden}
+.thumb.t1{background:linear-gradient(135deg,#0d3440,#8bd8e2 48%,#e9f4ce)}
+.thumb.t2{background:linear-gradient(135deg,#234f38,#f3c16c 55%,#fff4d2)}
+.thumb.t3{background:linear-gradient(135deg,#193a52,#55a9bd 50%,#b8edc8)}
+.thumb.t4{background:linear-gradient(135deg,#263e28,#d5d9b2 50%,#f8efe0)}
+.thumb:after{content:"CREATIVE";position:absolute;inset:auto 14px 13px;color:#fff;font-weight:900;font-size:15px;text-shadow:0 2px 10px #000}
+.badge-score{position:absolute;top:12px;right:12px;background:#111;color:#fff;border-radius:8px;padding:6px 8px;font-size:11px;font-weight:900;z-index:2}
+.creative-body{padding:14px}.creative-body .meta{font-size:10px;color:#777;margin:8px 0 13px}
+.btn{border:1px solid #111;background:#fff;padding:9px 11px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer}
+.btn.dark{background:#111;color:#fff}
+.detail{display:none;margin-top:26px;border:1px solid #ddd;border-radius:22px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+.detail.open{display:block}
+.detail-head{position:sticky;top:76px;z-index:10;background:#111;color:#fff;padding:18px 20px;display:grid;grid-template-columns:1.2fr 2fr .7fr;gap:18px;align-items:center}
+.detail-head .score{font-size:34px}.detail-head .level{color:#111;display:inline-block}
+.detail-body{display:grid;grid-template-columns:360px 1fr;min-height:520px}
+.preview-large{padding:24px;background:#f4f4f1}.preview-art{height:470px;border-radius:18px;background:linear-gradient(155deg,#133c47,#69c7d2 48%,#e6f0ce);position:relative;overflow:hidden}
+.preview-art:after{content:"Life looks better together.";position:absolute;left:24px;bottom:26px;color:#fff;font-size:24px;font-weight:900;max-width:220px}
+.analysis{padding:24px}.tabs{display:flex;gap:8px;border-bottom:1px solid #ddd;margin-bottom:16px}.tab{border:0;background:none;padding:10px 12px;font-weight:800;font-size:12px;cursor:pointer;border-bottom:3px solid transparent}.tab.active{border-color:var(--lime)}
+.tabpanel{display:none}.tabpanel.active{display:block}
+.finding{border:1px solid #ddd;border-radius:13px;margin:10px 0;overflow:hidden}.finding button{width:100%;border:0;background:#fff;text-align:left;padding:14px;cursor:pointer;display:flex;justify-content:space-between;font-weight:800;font-size:12px}.finding .inside{display:none;padding:0 14px 15px;font-size:11px;color:#555;line-height:1.55}.finding.open .inside{display:block}.finding.open button{background:#fafafa}
+.evidence{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.evidence div{background:#f7f7f5;border-radius:9px;padding:10px}.label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#999;font-weight:900;display:block;margin-bottom:5px}
+.action-row{display:grid;grid-template-columns:85px 1fr;gap:12px;padding:14px;border:1px solid #ddd;border-radius:13px;margin:10px 0}.action-tag{font-weight:900;font-size:10px;padding:6px 8px;border-radius:6px;align-self:start;text-align:center}.keep{background:var(--lime)}.opt{background:#dce4ff}.explore{background:#eadcff}
+.service-banner{margin-top:16px;padding:16px;border-radius:14px;background:linear-gradient(90deg,#071d24,#12383d);color:#fff;display:flex;justify-content:space-between;gap:20px;align-items:center}.service-banner strong{color:var(--lime)}
+.services{background:linear-gradient(135deg,#f7fbf0,#eef8f9 48%,#f5efff);border-radius:24px;padding:28px;margin-top:22px}
+.service-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+.service-card{background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.1);border-radius:16px;padding:18px}
+.service-num{font-size:10px;font-weight:900;color:#777;margin-bottom:8px}
+.service-card .visual{height:110px;border-radius:10px;margin:14px 0;background:linear-gradient(135deg,#e6f6df,#dff7f7);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900}
+.process{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:24px}.step{padding:22px;border-top:2px solid #111;position:relative}.step:not(:last-child):after{content:"→";position:absolute;right:-8px;top:14px;background:#fff;padding:0 5px;font-size:18px;font-weight:900}.step-num{font-size:10px;color:#777;font-weight:900}.step h3{margin-top:10px}
+.test-box{margin-top:25px;border:1px solid #ddd;border-radius:18px;padding:22px;background:#fafaf8;display:grid;grid-template-columns:1fr 1fr;gap:22px}.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}.mini-art{height:145px;border-radius:12px;background:linear-gradient(135deg,#203d43,#b4d9d1)}.mini-art.alt{background:linear-gradient(135deg,#1f3c57,#8cb4f5)}
+.glossary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.term{padding:16px 0;border-top:1px solid #ddd}.term b{display:block;font-size:13px;margin-bottom:5px}
+.footer{margin-top:70px;padding-top:18px;border-top:1px solid #eee;color:#888;font-size:10px}
+@media(max-width:1000px){.sidebar{display:none}.main{margin-left:0;width:100%;padding:0 22px}.hero{grid-template-columns:1fr}.gallery{grid-template-columns:repeat(2,1fr)}.grid3,.grid4,.service-grid,.glossary{grid-template-columns:1fr 1fr}.detail-body{grid-template-columns:1fr}.detail-head{grid-template-columns:1fr}.process{grid-template-columns:1fr 1fr}.step:not(:last-child):after{display:none}}
+@media(max-width:600px){h1{font-size:40px}.gallery,.grid3,.grid4,.service-grid,.glossary,.test-box,.process{grid-template-columns:1fr}.main{padding:0 16px}.topbar{height:64px}.detail-head{top:64px}.preview-large{padding:14px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="logo">WPP Media Solutions<span>Creative Intelligence · Advanced Social</span></div>
+  <div class="nav-label">Report</div>
+  <nav class="nav">
+    <button class="active" onclick="go('summary')"><span class="dot"></span>01 · Summary</button>
+    <button onclick="go('ci')"><span class="dot"></span>02 · Creative Intelligence</button>
+    <button onclick="go('services')"><span class="dot"></span>03 · Accionables + Creative Services</button>
+    <button onclick="go('learn')"><span class="dot"></span>04 · Crear · Probar · Medir · Aprender</button>
+    <button onclick="go('glossary')"><span class="dot"></span>05 · Glosario</button>
+  </nav>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="crumb">Creative Intelligence / <b>Advanced Social</b></div>
+    <button class="download" onclick="window.print()">Download / Print</button>
+  </div>
+
+  <section id="summary">
+    <div class="hero">
+      <div class="hero-copy">
+        <span class="section-kicker">01 · Portada + Resumen Ejecutivo</span>
+        <h1>Pequeñas historias,<br>grandes destinos.</h1>
+        <p class="lead">Una campaña con potencial para seguir creciendo, con oportunidades claras de optimización creativa.</p>
+        <div class="context-card">
+          <span class="pill">Colombia</span><span class="pill">Meta</span><span class="pill">Awareness</span><span class="pill">12 creatividades</span><span class="pill">Jun–Ago 2026</span>
+        </div>
+        <div class="score-wrap"><div class="score">82</div><div><div class="level">ALTO</div><div class="small" style="margin-top:7px">Creative Intelligence Score</div></div></div>
+        <p class="small"><b>Lectura ejecutiva:</b> La campaña tiene una base creativa sólida, pero existe una oportunidad clara de optimización.</p>
+      </div>
+      <div class="hero-visual"></div>
+    </div>
+
+    <div class="grid3">
+      <div class="card"><span class="type strength">FORTALEZA</span><h3>La creatividad captura atención desde el inicio.</h3><p class="small">Personaje en foco + composición con alto contraste.</p></div>
+      <div class="card"><span class="type opportunity">OPORTUNIDAD</span><h3>El branding aparece tarde.</h3><p class="small">Existe espacio para reforzar la señal de marca sin perder el concepto.</p></div>
+      <div class="card soft"><span class="type">PRÓXIMO FOCO</span><h3>Optimizar la entrada de marca.</h3><p class="small">Validar una variante frente al original con el KPI definido.</p></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div style="display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap">
+        <div><span class="label">Principal opportunity</span><h3>Reforzar branding en una posición más temprana</h3><p class="small">Optimization Opportunity · 82 → 85 · KPI a validar: CTR / clicks</p></div>
+        <button class="btn dark" onclick="go('services')">Ver accionables →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="ci">
+    <span class="section-kicker">02 · Creative Intelligence</span>
+    <h2>¿Cómo está compuesta nuestra creatividad<br>y qué patrones vemos entre las piezas?</h2>
+    <p class="lead">Explora el universo creativo y descubre qué señales funcionan, dónde hay oportunidades y qué piezas hacer crecer.</p>
+
+    <div class="landscape">
+      <div class="metric"><strong>12</strong><span>creatividades</span></div>
+      <div class="metric"><strong>4</strong><span>Reels</span></div>
+      <div class="metric"><strong>6</strong><span>Feed</span></div>
+      <div class="metric"><strong>2</strong><span>Stories</span></div>
+      <div class="metric"><strong>82</strong><span>CI Score</span></div>
+      <div class="metric"><strong>7</strong><span>señales detectadas</span></div>
+      <div style="margin-left:auto;font-size:11px;color:#777">Visual · Branding · CTA · Producto · Copy · Narrativa</div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:end;margin:25px 0 12px">
+      <div><h3>Creatividades destacadas</h3><div class="small">Explora las piezas y entra a su inteligencia individual.</div></div>
+      <div><button class="btn">Filtros</button> <button class="btn">Ordenar</button></div>
+    </div>
+
+    <div class="gallery">
+      <div class="creative-card"><div class="thumb t1"><span class="badge-score">92 · ALTO</span></div><div class="creative-body"><h3>Creativo 01</h3><div class="meta">Instagram · Reel · 1080 × 1920</div><button class="btn dark" onclick="openDetail(0)">Explorar creativo →</button></div></div>
+      <div class="creative-card"><div class="thumb t2"><span class="badge-score">76 · MEDIO</span></div><div class="creative-body"><h3>Creativo 02</h3><div class="meta">Instagram · Feed · 1080 × 1350</div><button class="btn dark" onclick="openDetail(1)">Explorar creativo →</button></div></div>
+      <div class="creative-card"><div class="thumb t3"><span class="badge-score">88 · ALTO</span></div><div class="creative-body"><h3>Creativo 03</h3><div class="meta">Instagram · Reel · 1080 × 1920</div><button class="btn dark" onclick="openDetail(2)">Explorar creativo →</button></div></div>
+      <div class="creative-card"><div class="thumb t4"><span class="badge-score">71 · BAJO</span></div><div class="creative-body"><h3>Creativo 04</h3><div class="meta">Instagram · Story · 1080 × 1920</div><button class="btn dark" onclick="openDetail(3)">Explorar creativo →</button></div></div>
+    </div>
+
+    <div id="detail" class="detail">
+      <div class="detail-head">
+        <div><div class="small" style="color:#aaa">CREATIVO 03 · ANALIZADO</div><strong id="detailTitle">Summer Campaign</strong><div class="small" style="color:#aaa;margin-top:5px">Una pieza que combina producto en foco con un mensaje aspiracional.</div></div>
+        <div><span class="small" style="color:#aaa">Instagram · Reel · 1080 × 1920 · Jun–Ago 2026</span></div>
+        <div style="text-align:right"><div class="score" id="detailScore">88</div><span class="level">ALTO</span></div>
+      </div>
+      <div class="detail-body">
+        <div class="preview-large"><div class="preview-art"></div></div>
+        <div class="analysis">
+          <div class="tabs">
+            <button class="tab active" onclick="tab(this,'findings')">HALLAZGOS</button>
+            <button class="tab" onclick="tab(this,'actions')">ACCIONABLES</button>
+          </div>
+          <div id="findings" class="tabpanel active">
+            <p class="small">Lo que encontramos — hallazgos que explican qué está funcionando, qué se repite y qué podemos mejorar.</p>
+            <div class="finding open"><button onclick="toggleFinding(this)">FORTALEZA · La creatividad captura la atención desde el inicio. <span>⌃</span></button><div class="inside">
+              <div class="evidence"><div><span class="label">Qué observamos</span>El personaje aparece desde el primer momento y concentra la atención visual.</div><div><span class="label">Evidencia</span>Alta atracción visual · personaje en foco · +42% clicks vs. promedio.</div><div><span class="label">Contexto</span>Objetivo: Traffic · Placement: Reels · Mercado: Chile.</div><div><span class="label">Qué significa</span>La pieza establece rápidamente un punto de atención y presenta desempeño superior al promedio en clicks.</div></div>
+              <div style="text-align:right;margin-top:10px"><button class="btn" onclick="tab(document.querySelectorAll('.tab')[1],'actions')">Ver acción relacionada →</button></div>
+            </div></div>
+            <div class="finding"><button onclick="toggleFinding(this)">PATRÓN · Producto visible en los primeros segundos. <span>⌄</span></button><div class="inside">Se observa en múltiples creatividades comparables. El patrón requiere más de una unidad de análisis.</div></div>
+            <div class="finding"><button onclick="toggleFinding(this)">OPORTUNIDAD · Reforzar la señal de marca. <span>⌄</span></button><div class="inside">El branding aparece después del punto inicial de atención. Se puede explorar una entrada más temprana.</div></div>
+          </div>
+          <div id="actions" class="tabpanel">
+            <p class="small">Accionables — convierte los hallazgos en decisiones creativas concretas.</p>
+            <div class="action-row"><div class="action-tag keep">KEEP</div><div><b>Conservar el contraste visual.</b><p class="small">Mantener producto y personaje en foco porque forman parte de la fortaleza observada.</p><button class="btn">Ver hallazgo relacionado →</button></div></div>
+            <div class="action-row"><div class="action-tag opt">OPTIMIZE</div><div><b>Introducir una señal de marca más temprano.</b><p class="small">Integrar el logo durante los primeros segundos y comparar contra el original.</p><button class="btn" onclick="go('services')">Ver Creative Services →</button></div></div>
+            <div class="action-row"><div class="action-tag explore">EXPLORE</div><div><b>Probar una nueva dirección de apertura.</b><p class="small">Explorar una variante que priorice branding + producto desde el inicio.</p></div></div>
+            <div class="service-banner"><div><strong>CREATIVE SERVICES</strong><br><span style="font-size:12px">Lleva tus accionables a ejecución.</span></div><button class="btn" onclick="go('services')">Explorar →</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="services">
+    <span class="section-kicker">03 · Accionables + Creative Services</span>
+    <h2>De la recomendación<br>a la ejecución.</h2>
+    <p class="lead">Creative Services convierte los insights de Creative Intelligence en ejecuciones creativas concretas.</p>
+
+    <div class="services">
+      <div class="service-grid">
+        <div class="service-card">
+          <div class="service-num">01 · ADAPTACIÓN CREATIVA</div>
+          <h3>Ajustar un activo existente</h3>
+          <p class="small">Cuando la recomendación implica un ajuste sobre una ejecución actual.</p>
+          <div class="visual">ORIGINAL → ADAPTACIÓN</div>
+          <b style="font-size:11px">Creative Services · Adaptar formatos</b>
+        </div>
+        <div class="service-card">
+          <div class="service-num">02 · NUEVA VARIANTE</div>
+          <h3>Explorar una nueva versión</h3>
+          <p class="small">Cuando la recomendación requiere explorar una alternativa manteniendo el concepto.</p>
+          <div class="visual">ORIGINAL → NUEVA VARIANTE</div>
+          <b style="font-size:11px">Creative Services · Desarrollar variantes</b>
+        </div>
+        <div class="service-card">
+          <div class="service-num">03 · NUEVO DESARROLLO</div>
+          <h3>Crear una nueva ejecución</h3>
+          <p class="small">Cuando la recomendación requiere explorar una nueva dirección creativa.</p>
+          <div class="visual">CONCEPTO → NUEVO DESARROLLO</div>
+          <b style="font-size:11px">Creative Services · Producir nuevas ejecuciones</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <span class="label">Relación dentro del producto</span>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:13px;font-weight:800">
+        <span>Hallazgo</span><span>→</span><span>Accionable</span><span>→</span><span>Tipo de intervención</span><span>→</span><span>Creative Services</span><span>→</span><span>Ejecución</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="learn">
+    <span class="section-kicker">04 · Crear, Probar, Medir & Aprender</span>
+    <h2>De la decisión<br>al aprendizaje.</h2>
+    <p class="lead">Esta es una metodología MASTER / transversal. Explica cómo Creative Intelligence cierra el ciclo entre inteligencia y aprendizaje; no finge que el sistema ya hizo el proceso si todavía no lo hace.</p>
+    <div class="process">
+      <div class="step"><div class="step-num">01</div><h3>CREAR</h3><p class="small">Convertir el accionable en una ejecución. Llevar la recomendación a una nueva variante o acción creativa.</p></div>
+      <div class="step"><div class="step-num">02</div><h3>PROBAR</h3><p class="small">Convertir la recomendación en una hipótesis. Comparar la nueva alternativa frente al original.</p></div>
+      <div class="step"><div class="step-num">03</div><h3>MEDIR</h3><p class="small">Evaluar el resultado frente al KPI / objetivo correspondiente.</p></div>
+      <div class="step"><div class="step-num">04</div><h3>APRENDER</h3><p class="small">Usar el resultado para la siguiente decisión: mantener, ajustar o explorar.</p></div>
+    </div>
+    <div class="test-box">
+      <div><span class="label">De la recomendación a la prueba</span><h3>Reforzar CTA en una posición más temprana</h3><p class="small">Usar la oportunidad creativa como una hipótesis medible.</p><div class="pill" style="display:inline-block;margin-top:7px">HIPÓTESIS · La señal más temprana podría facilitar la acción</div></div>
+      <div class="vs"><div><div class="small">ORIGINAL</div><div class="mini-art"></div></div><b>VS</b><div><div class="small">VARIANTE</div><div class="mini-art alt"></div></div></div>
+    </div>
+  </section>
+
+  <section id="glossary">
+    <span class="section-kicker">05 · Glosario</span>
+    <h2>Entiende los términos<br>de Creative Intelligence.</h2>
+    <p class="lead">Una sección sencilla, de consulta; no una explicación metodológica.</p>
+    <div class="glossary">
+      <div class="card"><h3>01 · Creative Intelligence</h3>
+        <div class="term"><b>Creative Intelligence Score</b><span class="small">Indicador que resume el nivel de fortaleza creativa de una campaña o pieza según las señales analizadas.</span></div>
+        <div class="term"><b>Creative Signals</b><span class="small">Características observables de una creatividad, como atención, branding, claridad, copy, visual, producto, CTA o narrativa.</span></div>
+        <div class="term"><b>Creative Index</b><span class="small">Definición exacta a adoptar finalmente en el producto.</span></div>
+      </div>
+      <div class="card"><h3>02 · Performance & Context</h3>
+        <div class="term"><b>Performance Intelligence</b><span class="small">Lectura del desempeño y delivery de las creatividades en campaña.</span></div>
+        <div class="term"><b>Context Intelligence</b><span class="small">Información para interpretar las señales según objetivo, audiencia, marca, mercado, placement, benchmark y restricciones.</span></div>
+        <div class="term"><b>Delivery</b><span class="small">Cómo se distribuyó la inversión/exposición entre las diferentes creatividades.</span></div>
+        <div class="term"><b>Benchmark</b><span class="small">Referencia utilizada para contextualizar el desempeño.</span></div>
+      </div>
+      <div class="card"><h3>03 · Opportunity & Action</h3>
+        <div class="term"><b>Opportunity Intelligence</b><span class="small">Conecta creatividad, performance y contexto para identificar y priorizar oportunidades.</span></div>
+        <div class="term"><b>KEEP</b><span class="small">Mantener aquello que está funcionando.</span></div>
+        <div class="term"><b>OPTIMIZE</b><span class="small">Mejorar una señal o elemento existente sin perder lo que ya funciona.</span></div>
+        <div class="term"><b>EXPLORE</b><span class="small">Probar una nueva dirección o hipótesis creativa.</span></div>
+        <div class="term"><b>Creative Services</b><span class="small">Capacidad para llevar recomendaciones a adaptación, desarrollo y producción de nuevas variantes.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Prototype · Creative Intelligence · Advanced Social · Sample data for product/UX demonstration only.</div>
+</main>
+</div>
+
+<script>
+function go(id){
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  const map={summary:0,ci:1,services:2,learn:3,glossary:4};
+  if(map[id]!==undefined) document.querySelectorAll('.nav button')[map[id]].classList.add('active');
+}
+function openDetail(i){
+  const data=[
+    ['Creative 01','92','ALTO'],['Creative 02','76','MEDIO'],['Creative 03','88','ALTO'],['Creative 04','71','BAJO']
+  ][i];
+  document.getElementById('detailTitle').textContent=data[0]+' · Summer Campaign';
+  document.getElementById('detailScore').textContent=data[1];
+  document.getElementById('detail').classList.add('open');
+  document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function tab(btn,id){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tabpanel').forEach(x=>x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function toggleFinding(btn){btn.parentElement.classList.toggle('open')}
+</script>
+</body>
+</html>

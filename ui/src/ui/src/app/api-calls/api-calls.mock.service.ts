@@ -433,43 +433,145 @@ export class ApiCallsService implements ApiCalls {
     return new Observable<string>(subscriber => {
       setTimeout(() => {
         subscriber.next(JSON.stringify({
-
-          macro_estrategias: [
+          resumen_ejecutivo: "El video construye una narrativa de alivio y bienestar desde situaciones cotidianas, con un tono cercano y optimista. En el contexto de activación definido, esta propuesta adquiere distintos matices de relevancia al conectarla con las rutinas de movilidad y consumo de cada territorio.",
+          datos_clave: [
+            { icono: "bar_chart", valor: "88%", titulo: "Conectividad urbana", subtitulo: "Acceso móvil constante" },
+            { icono: "commute", valor: "3.8h", titulo: "Movilidad diaria", subtitulo: "Tiempo en transporte" },
+            { icono: "devices", valor: "72%", titulo: "Consumo multipantalla", subtitulo: "CTV + Móvil simultáneo" }
+          ],
+          territorios: [
             {
-              zona: "Centro Norte",
-              audiencia: 150000,
-              coordenada_central: "19.4326,-99.1332",
-              estrategia: "Aumentar pauta en formatos cortos.",
-              prioridad: 1,
-              insight_narrativo: "El 60% de la audiencia aquí prefiere contenido dinámico.",
-              insights_creativos: {
-                do: "Sustituye la escena de tráfico pesado del min 0:15 por tomas del metro o transporte público local, incrementa la retención inicial un 12%.",
-                keep: "Mantén la corrección de color cálida en el call to action (min 0:45); transmite cercanía.",
-                explore: "Probar un corte vertical rápido (6s) destacando únicamente el atributo de durabilidad de batería."
-              }
+              territorio_id: "T01",
+              nombre: "Ciudad de México - Cuauhtémoc",
+              resumen: "Zona de alta densidad urbana y movilidad continua con consumidores que priorizan soluciones rápidas y prácticas durante sus traslados.",
+              caracteristicas_clave: [
+                { icono: "location_city", titulo: "Densidad urbana", descripcion: "Alta concentración de actividad laboral y comercial" },
+                { icono: "commute", titulo: "Movilidad intensa", descripcion: "Desplazamientos recurrentes en transporte y vía pública" },
+                { icono: "devices", titulo: "Conexión digital", descripcion: "Consumo de video en múltiples pantallas a lo largo del día" },
+                { icono: "directions_run", titulo: "Rutinas activas", descripcion: "Búsqueda constante de conveniencia y bienestar práctico" }
+              ],
+              indicadores_cualitativos: [
+                { etiqueta: "Movilidad urbana", nivel: 5 },
+                { etiqueta: "Sensibilidad a conveniencia", nivel: 4 },
+                { etiqueta: "Adopción digital", nivel: 5 }
+              ],
+              temas_mapa: ["Movilidad", "Bienestar Urbano"],
+              oportunidades: [
+                {
+                  id: "Oportunidad-01",
+                  titulo: "Conexión con rutinas urbanas matutinas",
+                  descripcion: "Alinear el mensaje de bienestar con el inicio de la jornada laboral y desplazamientos diarios.",
+                  relevancia: "Alta",
+                  hallazgo: "El producto se introduce en un contexto cotidiano pero la marca tarda en consolidar su llamado.",
+                  evidencia: {
+                    descripcion: "Escena de inicio con preparación matutina",
+                    timestamp_s: 4,
+                    tags: ["Rutina", "Inicio"]
+                  },
+                  insight: "En CDMX la atención compite con desplazamientos rápidos; se requiere claridad visual inmediata.",
+                  oportunidad: "Incorporar una barra persistente con llamado a la acción enfocado en conveniencia y disponibilidad inmediata."
+                },
+                {
+                  id: "Oportunidad-02",
+                  titulo: "Activación omnicanal en puntos de conveniencia",
+                  descripcion: "Facilitar la conversión y ubicación de producto en farmacias y tiendas locales en zonas de tránsito.",
+                  relevancia: "Media",
+                  hallazgo: "El cierre no ofrece un canal inmediato de compra o consulta rápida.",
+                  evidencia: {
+                    descripcion: "Cierre del video con imagen de producto",
+                    timestamp_s: 26,
+                    tags: ["Cierre", "Packshot"]
+                  },
+                  insight: "Los usuarios urbanos valoran la activación rápida vía móvil durante su trayecto.",
+                  oportunidad: "Agregar código QR interactivo para compra inmediata o geolocalización de tiendas cercanas."
+                }
+              ],
+              adaptaciones: [
+                {
+                  oportunidad_id: "Oportunidad-01",
+                  tipo: "ADAPT",
+                  intervencion: "personalize",
+                  titulo: "Barra de conveniencia matutina",
+                  descripcion: "Intervención con Branded Bar destacando beneficios inmediatos durante horarios de transporte.",
+                  formato: "branded_bar",
+                  ideal_para: ["Atención", "Branding"]
+                },
+                {
+                  oportunidad_id: "Oportunidad-02",
+                  tipo: "EXPLORE",
+                  intervencion: "amplify",
+                  titulo: "Activador QR de farmacias cercanas",
+                  descripcion: "Overlay QR interactivo al cierre vinculado a geolocalización en CDMX.",
+                  formato: "qr_code",
+                  ideal_para: ["Dirección", "Conversión"]
+                }
+              ]
             },
             {
-              zona: "Sur Sureste",
-              audiencia: 98000,
-              coordenada_central: "20.9673,-89.6236",
-              estrategia: "Conectar con elementos culturales locales en out of home y video corto.",
-              prioridad: 2,
-              insight_narrativo: "Alta respuesta a paletas de colores vibrantes y mensajes familiares.",
-              insights_creativos: {
-                do: "Integrar música con percusión sutil en el B-roll para sincronizar con el ritmo de vida local.",
-                keep: "El actor principal genera alta empatía, mantener sus escenas clave sin recortes.",
-                explore: "Crear una variante donde el producto se muestre en un contexto de playa o clima tropical."
-              }
+              territorio_id: "T02",
+              nombre: "Guadalajara - Zapopan",
+              resumen: "Hub metropolitano con alta adopción digital y balance entre vida familiar y laboral, con fuerte afinidad por productos de salud y bienestar integral.",
+              caracteristicas_clave: [
+                { icono: "groups", titulo: "Enfoque familiar", descripcion: "Decisiones de compra orientadas al bienestar del hogar" },
+                { icono: "devices", titulo: "Alta digitalización", descripcion: "Uso intensivo de plataformas de streaming y YouTube en CTV" },
+                { icono: "favorite", titulo: "Estilo de vida saludable", descripcion: "Creciente interés en prevención y autocuidado" },
+                { icono: "location_city", titulo: "Comercio de proximidad", descripcion: "Preferencia por canales locales y supermercados modernos" }
+              ],
+              indicadores_cualitativos: [
+                { etiqueta: "Consumo CTV", nivel: 5 },
+                { etiqueta: "Afinidad a salud", nivel: 4 },
+                { etiqueta: "Interacción digital", nivel: 4 }
+              ],
+              temas_mapa: ["Bienestar Familiar", "Hogar Conectado"],
+              oportunidades: [
+                {
+                  id: "Oportunidad-03",
+                  titulo: "Enfoque en bienestar compartido para el hogar",
+                  descripcion: "Amplificar los beneficios de alivio en contextos de descanso y convivencia en el hogar.",
+                  relevancia: "Alta",
+                  hallazgo: "La narrativa se centra en un individuo pero puede conectar con el entorno familiar.",
+                  evidencia: {
+                    descripcion: "Escena de resolución en espacio doméstico",
+                    timestamp_s: 15,
+                    tags: ["Hogar", "Resolución"]
+                  },
+                  insight: "En Guadalajara el consumo en CTV reúne audiencias familiares buscando soluciones confiables.",
+                  oportunidad: "Reforzar la tarjeta final con mensajes dirigidos a la protección y cuidado familiar."
+                }
+              ],
+              adaptaciones: [
+                {
+                  oportunidad_id: "Oportunidad-03",
+                  tipo: "ADAPT",
+                  intervencion: "personalize",
+                  titulo: "Video Card Bienestar Familiar",
+                  descripcion: "Adaptación con Video Card destacando la tranquilidad en el hogar.",
+                  formato: "video_card",
+                  ideal_para: ["Conexión", "Branding"]
+                }
+              ]
             }
           ],
-          micro_oportunidades: [{
-            zona: "Monterrey Sur",
-            audiencia: 45000,
-            coordenada_central: "25.6866,-100.3161",
-            estrategia: "Pauta hiper-local en centros comerciales.",
-            prioridad: 2,
-            insight_narrativo: "Alta densidad de tráfico en fines de semana."
-          }]
+          testing_framework: [
+            {
+              recomendacion: "Testear variante con Branded Bar matutino vs Asset Original para medir impacto en Ad Recall en CDMX.",
+              variante: "Asset Original vs Branded Bar CDMX",
+              hipotesis: "La presencia temprana de marca y beneficios urbanos elevará la retención en los primeros 5 segundos en un 15%.",
+              metricas_exito: ["Ad Recall", "VTR", "Attention Score"],
+              territorio: "T01",
+              adaptationType: "ADAPT",
+              formato: "branded_bar"
+            },
+            {
+              recomendacion: "Evaluar QR interactivo de geolocalización al cierre vs llamada tradicional a la acción.",
+              variante: "Asset Original vs QR Code Proximidad",
+              hipotesis: "El facilitador de acción directa incrementará el CTR en dispositivos móviles y Connected TV.",
+              metricas_exito: ["CTR", "Direction Score", "Engagement Rate"],
+              territorio: "T01",
+              adaptationType: "EXPLORE",
+              formato: "qr_code"
+            }
+          ]
         }));
         subscriber.complete();
       }, 1000);

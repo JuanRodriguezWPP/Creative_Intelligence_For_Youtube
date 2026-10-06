@@ -1,103 +1,171 @@
 <section class="v2-testing-container" aria-labelledby="testing-framework-title">
+  <!-- Encabezado de Sección -->
   <header class="v2-testing-section-head">
     <div class="v2-testing-section-head-left">
-      <div class="v2-testing-section-num" aria-label="Sección 5 de 5">05 <span>/ 05</span></div>
-      <div class="v2-testing-section-title-group">
-        <h2 id="testing-framework-title">TESTING FRAMEWORK</h2>
-        <p>La oportunidad se convierte en una hipótesis de prueba.</p>
-      </div>
+      <span class="v2-num" aria-label="Sección 4 de 4">04 <span class="v2-num-total">/ 04</span></span>
+      <h2 id="testing-framework-title" class="v2-section-title">Testing Framework</h2>
+      <p class="v2-section-sub">De la decisión al aprendizaje.</p>
+      <p class="v2-section-desc">Metodología transversal para validar las oportunidades creativas identificadas por Creative Intelligence mediante experimentación, medición y aprendizaje.</p>
     </div>
-    <p class="v2-testing-section-description">Define, testea y aprende. Este framework ayuda a validar el impacto de las adaptaciones territoriales mediante criterios de éxito acordados.</p>
   </header>
 
   <div *ngIf="section.state === 'mock'" class="v2-source-badge" role="status">LOCAL MOCK DATA</div>
 
-  <div *ngIf="section.data as content; else sectionState" class="v2-testing-list-wrap">
-    <article *ngFor="let test of content.tests; let testIndex = index" class="v2-testing-case" [attr.aria-labelledby]="'test-case-' + test.id">
-      <div class="v2-testing-context">
-        <div>
-          <span *ngIf="test.territory" class="v2-territory-label">{{ test.territory }}</span>
-          <span *ngIf="test.adaptationType" class="v2-adaptation-badge" [attr.data-type]="test.adaptationType">{{ test.adaptationType }}</span>
-        </div>
-        <span class="v2-measurement-status">Pendiente de medición</span>
+  <!-- CAPA 1: Metodología Transversal (4 Pasos) -->
+  <div class="v2-methodology-grid" aria-label="Metodología transversal de cuatro pasos">
+    <!-- STEP 01: CREATE -->
+    <article class="v2-methodology-card">
+      <div class="v2-methodology-top">
+        <span class="v2-methodology-badge">01 — CREATE</span>
+        <div class="v2-methodology-icon"><mat-icon aria-hidden="true">auto_fix_high</mat-icon></div>
       </div>
+      <h3 class="v2-methodology-title">Llevar la recomendación a una solución creativa.</h3>
+      <p class="v2-methodology-desc">La oportunidad identificada se convierte en una adaptación o nueva ejecución.</p>
+    </article>
 
-      <div class="v2-testing-grid" tabindex="0" aria-label="Flujo de prueba de cuatro pasos">
-        <div class="v2-testing-step-wrap">
-          <section class="v2-testing-card">
-            <div class="v2-testing-head-row">
-              <div class="v2-testing-icon-box green"><mat-icon aria-hidden="true">my_location</mat-icon></div>
-              <div><div class="v2-testing-step-num">STEP 1</div><h3 class="v2-testing-title" [id]="'test-case-' + test.id">Recomendación</h3></div>
-            </div>
-            <p class="v2-testing-desc">La oportunidad identificada en el territorio.</p>
-            <blockquote class="v2-testing-highlight">“{{ test.recommendation }}”</blockquote>
-          </section>
-          <div class="v2-testing-arrow" aria-hidden="true"><mat-icon>chevron_right</mat-icon></div>
-        </div>
-
-        <div class="v2-testing-step-wrap">
-          <section class="v2-testing-card">
-            <div class="v2-testing-head-row">
-              <div class="v2-testing-icon-box purple"><mat-icon aria-hidden="true">play_circle_filled</mat-icon></div>
-              <div><div class="v2-testing-step-num">STEP 2</div><h3 class="v2-testing-title">Original vs. Variante</h3></div>
-            </div>
-            <p class="v2-testing-desc">Creatividad original vs. adaptación territorial.</p>
-            <div class="v2-testing-images">
-              <figure>
-                <ng-container *ngIf="!failedPreviews.has(test.id + '-original'); else originalFallback">
-                  <img [src]="test.original.url" [alt]="test.original.alt" width="220" height="124" loading="lazy" (error)="markPreviewAsFailed(test.id + '-original')">
-                </ng-container>
-                <ng-template #originalFallback><div class="v2-preview-fallback"><mat-icon aria-hidden="true">image_not_supported</mat-icon></div></ng-template>
-                <figcaption>Original</figcaption>
-              </figure>
-              <figure>
-                <ng-container *ngIf="!failedPreviews.has(test.id + '-variant'); else variantFallback">
-                  <img [src]="test.variant.url" [alt]="test.variant.alt" width="220" height="124" loading="lazy" (error)="markPreviewAsFailed(test.id + '-variant')">
-                </ng-container>
-                <ng-template #variantFallback><div class="v2-preview-fallback"><mat-icon aria-hidden="true">image_not_supported</mat-icon></div></ng-template>
-                <figcaption>{{ test.variantLabel }}</figcaption>
-              </figure>
-            </div>
-          </section>
-          <div class="v2-testing-arrow" aria-hidden="true"><mat-icon>chevron_right</mat-icon></div>
-        </div>
-
-        <div class="v2-testing-step-wrap">
-          <section class="v2-testing-card">
-            <div class="v2-testing-head-row">
-              <div class="v2-testing-icon-box blue"><mat-icon aria-hidden="true">science</mat-icon></div>
-              <div><div class="v2-testing-step-num">STEP 3</div><h3 class="v2-testing-title">Hipótesis</h3></div>
-            </div>
-            <p class="v2-testing-desc">Qué esperamos que cambie con la adaptación.</p>
-            <blockquote class="v2-testing-highlight blue">“{{ test.hypothesis }}”</blockquote>
-          </section>
-          <div class="v2-testing-arrow" aria-hidden="true"><mat-icon>chevron_right</mat-icon></div>
-        </div>
-
-        <div class="v2-testing-step-wrap v2-testing-step-wrap--last">
-          <section class="v2-testing-card">
-            <div class="v2-testing-head-row">
-              <div class="v2-testing-icon-box orange"><mat-icon aria-hidden="true">insert_chart</mat-icon></div>
-              <div><div class="v2-testing-step-num">STEP 4</div><h3 class="v2-testing-title">Métrica de éxito</h3></div>
-            </div>
-            <p class="v2-testing-desc">KPIs objetivo acordados para evaluar el resultado; no representan resultados medidos.</p>
-            <ul class="v2-testing-list">
-              <li *ngFor="let metric of test.successMetrics">{{ metric }}</li>
-            </ul>
-          </section>
-        </div>
+    <!-- STEP 02: TEST -->
+    <article class="v2-methodology-card">
+      <div class="v2-methodology-top">
+        <span class="v2-methodology-badge">02 — TEST</span>
+        <div class="v2-methodology-icon"><mat-icon aria-hidden="true">compare</mat-icon></div>
       </div>
+      <h3 class="v2-methodology-title">Comparar frente al asset original.</h3>
+      <p class="v2-methodology-desc">La nueva versión se contrasta con la creatividad de referencia bajo condiciones comparables.</p>
+    </article>
+
+    <!-- STEP 03: MEASURE -->
+    <article class="v2-methodology-card">
+      <div class="v2-methodology-top">
+        <span class="v2-methodology-badge">03 — MEASURE</span>
+        <div class="v2-methodology-icon"><mat-icon aria-hidden="true">insights</mat-icon></div>
+      </div>
+      <h3 class="v2-methodology-title">Evaluar frente al objetivo.</h3>
+      <p class="v2-methodology-desc">Se observan los KPIs definidos para determinar si la intervención genera una mejora.</p>
+    </article>
+
+    <!-- STEP 04: LEARN -->
+    <article class="v2-methodology-card">
+      <div class="v2-methodology-top">
+        <span class="v2-methodology-badge">04 — LEARN</span>
+        <div class="v2-methodology-icon"><mat-icon aria-hidden="true">psychology</mat-icon></div>
+      </div>
+      <h3 class="v2-methodology-title">Decidir qué mantener, ajustar o volver a probar.</h3>
+      <p class="v2-methodology-desc">Los resultados permiten mantener, ajustar o volver a probar la solución.</p>
     </article>
   </div>
 
-  <ng-template #sectionState>
-    <div class="v2-section-state" [attr.data-state]="section.state" role="status">
-      <mat-icon aria-hidden="true">{{ section.state === 'incomplete' ? 'warning_amber' : 'science' }}</mat-icon>
-      <div>
-        <strong>{{ section.state === 'incomplete' ? 'Framework incompleto' : 'Testing Framework pendiente' }}</strong>
-        <p *ngIf="section.state === 'incomplete'">La salida necesita recomendación, previews, hipótesis y métricas objetivo para mostrar el flujo.</p>
-        <p *ngIf="section.state !== 'incomplete'">El framework aparecerá cuando el análisis entregue una salida válida.</p>
+  <!-- CAPA 2: Ejemplo Ilustrativo de Experimentación -->
+  <div class="v2-example-container">
+    <header class="v2-example-header">
+      <span class="v2-example-eyebrow">MARCO METODOLÓGICO DE EXPERIMENTACIÓN — EJEMPLO ILUSTRATIVO</span>
+      <h3 class="v2-example-title">De la oportunidad a la prueba A/B</h3>
+      <p class="v2-example-desc">Ejemplo ilustrativo de cómo una oportunidad identificada por Creative Intelligence podría convertirse en una hipótesis de experimentación para YouTube.</p>
+    </header>
+
+    <!-- Comparación Visual Original vs. Variante -->
+    <div class="v2-ab-grid">
+      <!-- Asset Original -->
+      <div class="v2-ab-card">
+        <div class="v2-ab-card-header">
+          <span class="v2-ab-pill v2-ab-pill--original">ASSET ORIGINAL</span>
+          <span class="v2-ab-sub">Creatividad de referencia</span>
+        </div>
+        <div class="v2-ab-preview-wrap">
+          <ng-container *ngIf="!failedPreviews.has('ab-original'); else fallbackOriginal">
+            <img
+              src="assets/formats/testing/testing_original.png"
+              alt="Asset original de referencia"
+              loading="lazy"
+              (error)="markPreviewAsFailed('ab-original')">
+          </ng-container>
+          <ng-template #fallbackOriginal>
+            <div class="v2-preview-fallback">
+              <mat-icon aria-hidden="true">image_not_supported</mat-icon>
+              <span>Asset original</span>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- VS Badge -->
+      <div class="v2-ab-vs-divider" aria-hidden="true">
+        <span class="v2-ab-vs-badge">VS</span>
+      </div>
+
+      <!-- Variante Ilustrativa -->
+      <div class="v2-ab-card">
+        <div class="v2-ab-card-header">
+          <span class="v2-ab-pill v2-ab-pill--variant">VARIANTE ILUSTRATIVA</span>
+          <span class="v2-ab-sub">Adaptación con intervención</span>
+        </div>
+        <div class="v2-ab-preview-wrap">
+          <ng-container *ngIf="!failedPreviews.has('ab-variant'); else fallbackVariant">
+            <img
+              src="assets/formats/testing/testing_variant.png"
+              alt="Variante ilustrativa"
+              loading="lazy"
+              (error)="markPreviewAsFailed('ab-variant')">
+          </ng-container>
+          <ng-template #fallbackVariant>
+            <div class="v2-preview-fallback">
+              <mat-icon aria-hidden="true">image_not_supported</mat-icon>
+              <span>Variante ilustrativa</span>
+            </div>
+          </ng-template>
+        </div>
       </div>
     </div>
-  </ng-template>
+
+    <!-- Hipótesis y Qué Medimos -->
+    <div class="v2-ab-info-grid">
+      <!-- Hipótesis -->
+      <div class="v2-ab-info-card">
+        <div class="v2-ab-info-head">
+          <div class="v2-ab-info-icon"><mat-icon aria-hidden="true">lightbulb</mat-icon></div>
+          <h4>HIPÓTESIS</h4>
+        </div>
+        <blockquote class="v2-ab-hypothesis">
+          “Si incorporamos una intervención de branding y CTA sobre el asset original, podemos evaluar su impacto frente a la versión de referencia.”
+        </blockquote>
+      </div>
+
+      <!-- Qué Medimos -->
+      <div class="v2-ab-info-card">
+        <div class="v2-ab-info-head">
+          <div class="v2-ab-info-icon"><mat-icon aria-hidden="true">analytics</mat-icon></div>
+          <h4>QUÉ MEDIMOS</h4>
+        </div>
+        <p class="v2-ab-measure-desc">KPIs definidos según el objetivo de campaña para evaluar el impacto incremental de la intervención.</p>
+        <div class="v2-kpi-chips">
+          <span class="v2-kpi-chip">Brand Lift</span>
+          <span class="v2-kpi-chip">Ad Recall</span>
+          <span class="v2-kpi-chip">Consideración de marca</span>
+          <span class="v2-kpi-chip">VTR (Video Completion Rate)</span>
+          <span class="v2-kpi-chip">Click-Through / Activación</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cierre del Framework: Loop & Next Iteration -->
+    <div class="v2-testing-loop-box">
+      <div class="v2-loop-badges">
+        <span class="v2-loop-step">CREATE</span>
+        <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+        <span class="v2-loop-step">TEST</span>
+        <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+        <span class="v2-loop-step">MEASURE</span>
+        <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+        <span class="v2-loop-step">LEARN</span>
+        <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+        <span class="v2-loop-step v2-loop-step--highlight">NEXT ITERATION</span>
+      </div>
+      <p class="v2-loop-desc">Los resultados de la experimentación alimentan la siguiente iteración creativa.</p>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="v2-testing-disclaimer" role="note">
+      <mat-icon aria-hidden="true">info</mat-icon>
+      <p>Ejemplo metodológico ilustrativo. Los resultados reales se obtienen mediante una prueba A/B en pauta para validar el impacto incremental.</p>
+    </div>
+  </div>
 </section>

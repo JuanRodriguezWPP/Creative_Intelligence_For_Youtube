@@ -81,7 +81,7 @@ export class StorageManager {
       }
       
       // Devuelve la ruta completa de todos los archivos
-      return files.map(f => f.name);
+      return files.map((f: File) => f.name);
     } catch (error) {
       console.error(`Error listing objects with prefix ${prefix}:`, error);
       return [];

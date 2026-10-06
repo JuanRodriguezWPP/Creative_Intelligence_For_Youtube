@@ -7,7 +7,7 @@ import { CREATIVE_SERVICES_MOCK } from './mocks/creative-services.mock';
 import { TESTING_FRAMEWORK_MOCK } from './mocks/testing-framework.mock';
 
 describe('report data adapters', () => {
-  it('validates the five Creative Services formats fixture', () => {
+  it('validates the four Creative Services formats fixture', () => {
     const raw = {
       ...CREATIVE_SERVICES_MOCK,
       formats: CREATIVE_SERVICES_MOCK.formats.map(format => ({
@@ -22,7 +22,7 @@ describe('report data adapters', () => {
 
     const result = validateCreativeServicesResponse(raw);
     expect(result.valid).toBeTrue();
-    expect(result.data?.formats.length).toBe(5);
+    expect(result.data?.formats.length).toBe(4);
   });
 
   it('rejects an incomplete Creative Services response', () => {
